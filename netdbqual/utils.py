@@ -40,9 +40,9 @@ def classify_gb_acc(acc):
     prot=[(3,5), (3,7)]
     #
     n_alpha=count_start_letters(acc)
-    #print(acc)
+    print(acc)
     n_num=count_end_num(acc)
-    #print (n_alpha, n_num)
+    print (n_alpha, n_num)
     return map_acc((n_alpha, n_num), gb, prot, ("genbank", "nucleotide"), ("genbank", "protein"))
 
 def classify_acc(acc):
