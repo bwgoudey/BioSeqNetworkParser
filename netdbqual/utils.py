@@ -1,3 +1,5 @@
+import re 
+
 def map_acc(acc, nuc, prot, nuc_str, prot_str):
     nuc_vals = [nuc_str]*len(nuc)
     prot_vals = [prot_str]*len(prot)
@@ -5,7 +7,7 @@ def map_acc(acc, nuc, prot, nuc_str, prot_str):
     #print(type_map)
     #print(acc)
     if acc not in type_map:
-        return "NA"
+        return ("uniprot", "protein")
     return type_map[acc]
 
 
