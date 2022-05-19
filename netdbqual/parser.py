@@ -1,5 +1,5 @@
 from __future__ import annotations
-import netdbqual.utils as u
+import netdbqual.classify_acc as ca
 import re
 from typing import List, Tuple
 
@@ -31,6 +31,8 @@ def extractProduct(r, rec_type: str, db:str):
     prod=prod.split("MULTISPECIES: ")[-1]
     return(prod)
     
+def get_dbxrefs(dbx):
+    return [id.split(":")[1] for id in dbx if id[0:6]=="RefSeq" or id[0:4]=="EMBL"]
 
 def extractEdges(r, rec_type: str, seq_type):
     edge = []
@@ -45,6 +47,8 @@ def extractEdges(r, rec_type: str, seq_type):
                     edge = m.groups()[0].strip(".").split(", ")
             elif 'accession ' in r.annotations['db_source']:
                 edge = [r.annotations['db_source'].split("accession ")[-1]]
+        elif hasattr(r, 'dbxrefs'):
+            edge=get_dbxrefs(r.dbxrefs)
 
     # For a protein that is a genbank record subset
     elif rec_type == "gb_sub":
@@ -69,8 +73,9 @@ def extractSeqVersion(r, rec_type: str, seq_type) -> int:
     """
     seq_ver=""
     # For a genbank record
-    if rec_type == "gb":
-        id, seq_ver = r.id.split('.')
+    if rec_type == "gb" :
+        if  "." in r.id :
+            id, seq_ver = r.id.split('.')
     # For a protein that is a genbank record subset
     elif rec_type == "gb_sub":
         id, seq_ver = r.qualifiers['protein_id'][0].split('.')
@@ -140,9 +145,149 @@ def isRelevant(r, rec_type: str, seq_type: str) -> bool:
     return True
 
 
+def extractSeq(r,rec_type:str) -> str:
+    """Extract the sequence from a given record
+
+    Args:
+        r (_type_): Record from Bio.Seq object
+        rec_type (tr): describes the type of record we are considering
+    Returns:
+        str: 
+    """
+    raise 
+    # For a genbank record
+    if rec_type == "gb":
+        1
+    # For a protein that is a genbank record subset
+    elif rec_type == "gb_sub":
+        1
+    else:
+        raise
+    return(1)
+
+
+def extractDateUpload(r,rec_type:str) -> str:
+    """Extract the sequence from a given record
+
+    Args:
+        r (_type_): Record from Bio.Seq object
+        rec_type (tr): describes the type of record we are considering
+    Returns:
+        str: 
+    """
+    raise 
+    # For a genbank record
+    if rec_type == "gb":
+        1
+    # For a protein that is a genbank record subset
+    elif rec_type == "gb_sub":
+        1
+    else:
+        raise
+    return(1)
+
+
+def extractDateModified(r,rec_type:str) -> str:
+    """Extract the sequence from a given record
+
+    Args:
+        r (_type_): Record from Bio.Seq object
+        rec_type (tr): describes the type of record we are considering
+    Returns:
+        str: 
+    """
+    raise 
+    # For a genbank record
+    if rec_type == "gb":
+        1
+    # For a protein that is a genbank record subset
+    elif rec_type == "gb_sub":
+        1
+    else:
+        raise
+    return(1)
+
+
+
+def extractNumProducts(r,rec_type:str) -> str:
+    """Extract the sequence from a given record
+
+    Args:
+        r (_type_): Record from Bio.Seq object
+        rec_type (tr): describes the type of record we are considering
+    Returns:
+        str: 
+    """
+    raise 
+    # For a genbank record
+    if rec_type == "gb":
+        1
+    # For a protein that is a genbank record subset
+    elif rec_type == "gb_sub":
+        1
+    else:
+        raise
+    return(1)
+
+
+
+def extractGO(r,rec_type:str) -> str:
+    """Extract the sequence from a given record
+
+    Args:
+        r (_type_): Record from Bio.Seq object
+        rec_type (tr): describes the type of record we are considering
+    Returns:
+        str: 
+    """
+    raise 
+    # For a genbank record
+    if rec_type == "gb":
+        1
+    # For a protein that is a genbank record subset
+    elif rec_type == "gb_sub":
+        1
+    else:
+        raise
+    return(1)
+
+
+
+
+
+def extractEC(r,rec_type:str) -> str:
+    """Extract the sequence from a given record
+
+    Args:
+        r (_type_): Record from Bio.Seq object
+        rec_type (tr): describes the type of record we are considering
+    Returns:
+        str: 
+    """
+    raise 
+    # For a genbank record
+    if rec_type == "gb":
+        1
+    # For a protein that is a genbank record subset
+    elif rec_type == "gb_sub":
+        1
+    else:
+        raise
+    return(1)
+
+
+
+
+
+
+
+
+
+
+
 def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
     id = r.id
-    if db=="uniprot":
+    if "UOI52910.1" in id:
         a=1
 
     if hasattr(r, 'annotations'):
@@ -158,22 +303,35 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
 
     id = r.id
     prod=extractProduct(r, rec_type, db)
-    organism=extractOrganism(r)
+    organism=extractOrganism(r, rec_type)
+    date_upload=extractDateUpload(r, rec_type)
+    date_modified=extractDateModified(r, rec_type)
+    n_products=extractNumProducts(r, rec_type)
+    taxa_id=extractNumProducts(r, rec_type)
+    go=extractGO(r, rec_type)
+    ec=extractEC(r, rec_type)
+
     edge = extractEdges(r, rec_type, seq_type)
     seq_version=extractSeqVersion(r, rec_type, seq_type)
     seq = extractSeq(r, rec_type, seq_type)
     node = "\t".join([
         id,
-        str(seq_version),
-        seq_type, 
-        prod,
-        organism,
         db,
+        seq_type, 
+        n_products, 
+        date_upload, 
+        date_modified, 
+        go,
+        ec,
+        organism,
+        taxa_id,
+        prod,
+        str(seq_version),
         seq
     ])
     if db=="uniprot":
         a=1
-    return ([node], [id+"\t"+e for e in edge])
+    return ([node], ["\t".join([id, e, seq_type,ca.classify_acc(e)[1]]) for e in edge])
 
 
 

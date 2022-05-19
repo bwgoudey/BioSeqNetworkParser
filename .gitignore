@@ -1,1 +1,6 @@
 .env
+.pypy_env
+data/*.csv
+data/*.gz
+data/*.gp
+data/*.gpk
