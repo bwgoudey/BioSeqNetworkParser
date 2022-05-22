@@ -7,6 +7,12 @@ from Bio import SeqRecord
 from datetime import datetime
 from collections import defaultdict
 
+#
+# Taxa
+#
+
+
+
 def extractOrganism(r_annots):
     org = ""
     # For a protein that is a genbank record subset
@@ -16,41 +22,110 @@ def extractOrganism(r_annots):
     return(org)
 
 
-def extractTaxonomy(r_annots):
+def extractTaxonomy(r_annots, n_level=6):
     tax=[]
     if 'taxonomy' in r_annots:
-        tax=r_annots['taxonomy'][0:min(len(r_annots['taxonomy']), 4)]
+        tax=r_annots['taxonomy'][0:min(len(r_annots['taxonomy']), n_level)]
     
-    tax=",".join(tax+[""]*(4-len(tax)))
+    tax=",".join(tax+[""]*(n_level-len(tax)))
     return tax
 
 
-def extractTaxaID(r):
+def extractTaxaID(source_feat):
 
     #taxid={f.type:f for f in r.features}['source'].f.
-    if r.features[0].type!="source":
+    if source_feat.type!="source":
         raise
-    return(r.features[0].qualifiers['db_xref'][0])
+    return(source_feat.qualifiers['db_xref'][0])
 
 
+#
+# Dates
+#
 
-def extractProduct(r, rec_type: str, db:str):
+def gpkDateStrToNum(date_str):
+    d=datetime.strptime(date_str, '%d-%b-%Y')
+    return(d.year*10000+d.month*100+d.day)
+
+
+def extractDateFromJournalStr(date_str):
+    date_regex=re.compile(r"Submitted \((\d{2}-[A-Z]{3}-[0-9]{4})\)")
+    upload_date=date_regex.match(date_str)
+    if(not upload_date):
+        return -1
+    
+    return(gpkDateStrToNum(upload_date.groups()[0]))
+    
+
+def extractDateModified(r,rec_type:str) -> str:
+    """Extract the sequence from a given record
+
+    Args:
+        r (_type_): Record from Bio.Seq object
+        rec_type (tr): describes the type of record we are considering
+    Returns:
+        str: 
+    """
+     
     # For a genbank record
-    prod=""
+    modify_dates=[]
     if rec_type == "top":
-        if r.description[0:7] == "RecName":
-            prod = r.description.split(";")[0].split("=")[-1]
+        #We make the assumption that the first indication of 
+        if 'references' in r.annotations and r.annotations['references']:
+            possible_dates=[extractDateFromJournalStr(s.journal) for s in r.annotations['references']]
+            modify_dates=list(filter(lambda x: x>0, possible_dates))
         else:
-            prod = r.description.split(' [')[0]        
+            raise
     # For a protein that is a genbank record subset
     elif rec_type == "product":
-        if 'product' in r.qualifiers:
-            prod = r.qualifiers['product'][0]
+        1
     else:
         raise
+    return([modify_dates[-1], modify_dates[0], len(modify_dates)])
+
+
+def extractDateLastModified(date_str) -> str:
+    """Extract the sequence from a given record
+
+    Args:
+        r (_type_): Record from Bio.Seq object
+        rec_type (tr): describes the type of record we are considering
+    Returns:
+        str: 
+    """
     
-    prod=prod.split("MULTISPECIES: ")[-1]
-    return(prod)
+    # For a genbank record
+    return(gpkDateStrToNum(date_str))
+
+
+
+
+
+
+
+def extractProduct(feature_dict, rec_type):
+    # # For a genbank record
+    # prod=""
+    # if rec_type == "top":
+    #     if r.description[0:7] == "RecName":
+    #         prod = r.description.split(";")[0].split("=")[-1]
+    #     else:
+    #         prod = r.description.split(' [')[0]        
+    # # For a protein that is a genbank record subset
+    # elif rec_type == "product":
+    #     if 'product' in r.qualifiers:
+    #         prod = r.qualifiers['product'][0]
+    # else:
+    #     raise
+    
+    # prod=prod.split("MULTISPECIES: ")[-1]
+    # return(prod)
+    if rec_type=="nucleotide":
+        feat=feature_dict['CDS']
+    else:
+        feat=feature_dict['Protein']
+
+    return(feat.qualifiers['product'])
     
 
 def get_dbxrefs(dbx):
@@ -69,6 +144,7 @@ def extractParentEdges(r_annot):
                 edge = [r_annot['db_source'].split("accession ")[-1]]
     elif hasattr(r, 'dbxrefs'):
             edge=get_dbxrefs(r.dbxrefs)
+
 
 def extractRelatedEdges(cds_features):
 
@@ -163,60 +239,6 @@ def isPseudo(r: SeqRecord, rec_type: str, seq_type: str) -> bool:
 
     return False
 
-def gpkDateStrToNum(date_str):
-    d=datetime.strptime(date_str, '%d-%b-%Y')
-    return(d.year*10000+d.month*100+d.day)
-
-
-def extractDateFromJournalStr(date_str):
-    date_regex=re.compile(r"Submitted \((\d{2}-[A-Z]{3}-[0-9]{4})\)")
-    upload_date=date_regex.match(date_str)
-    if(not upload_date):
-        return -1
-    
-    return(gpkDateStrToNum(upload_date.groups()[0]))
-    
-
-def extractDateModified(r,rec_type:str) -> str:
-    """Extract the sequence from a given record
-
-    Args:
-        r (_type_): Record from Bio.Seq object
-        rec_type (tr): describes the type of record we are considering
-    Returns:
-        str: 
-    """
-     
-    # For a genbank record
-    modify_dates=[]
-    if rec_type == "top":
-        #We make the assumption that the first indication of 
-        if 'references' in r.annotations and r.annotations['references']:
-            possible_dates=[extractDateFromJournalStr(s.journal) for s in r.annotations['references']]
-            modify_dates=list(filter(lambda x: x>0, possible_dates))
-        else:
-            raise
-    # For a protein that is a genbank record subset
-    elif rec_type == "product":
-        1
-    else:
-        raise
-    return([modify_dates[-1], modify_dates[0], len(modify_dates)])
-
-
-def extractDateLastModified(date_str) -> str:
-    """Extract the sequence from a given record
-
-    Args:
-        r (_type_): Record from Bio.Seq object
-        rec_type (tr): describes the type of record we are considering
-    Returns:
-        str: 
-    """
-    
-    # For a genbank record
-    return(gpkDateStrToNum(date_str))
-
 
 def identifyProteins(r):
     feats=r.features[1:]
@@ -248,7 +270,7 @@ def extractNumProducts(r,rec_type:str) -> str:
 
 
 
-def extractGO(CDS, product) -> str:
+def extractNcbiGO(p) -> str:
     """Extract the sequence from a given record
 
     Args:
@@ -258,13 +280,31 @@ def extractGO(CDS, product) -> str:
         str: 
     """
     gos=[]
+    relevant_feats=set(p.keys()).intersection(set(['CDS', 'Protein']))
+
     # For a genbank record
-    gos=[re.findall(r'(GO:\d{7})', f.qualifiers['note'][0]) for f in [CDS, product] if 'note' in f.qualifiers]
+    gos=[re.findall(r'(GO:\d{7})', f.qualifiers['note'][0]) for f in [p['CDS'], ] if 'note' in f.qualifiers]
     gos=sorted(list(set([x for go in gos for x in go])))
 
     return(gos)
 
+def extractUniprotGo(dbsource) -> str:
+    """Extract the sequence from a given record
 
+    Args:
+        dbsource (str): string 
+    Returns:
+        str: 
+    """
+
+    # For a genbank record
+    return(sorted(re.findall(r'(GO:\d{7})',dbsource)))
+    
+
+def extractGO(r, p, db):
+    if(db=="uniprot"):
+        return extractUniprotGo(r.annotations['dbsource'])
+    return extractNcbiGO(p)
 
 
 
@@ -307,35 +347,51 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
         return
 
     id = r.id
-    prod=extractProduct(r, rec_type, db)
-    organism=extractOrganism(r)
+    organism=extractOrganism(r.annotations)
+    taxonomy=extractTaxonomy(r.annotations)
+    taxa_id=extractTaxaID(r.features[0])
+
     date_upload=extractDateModified(r, rec_type)
     date_modified=extractDateLastModified(r, rec_type)
-    n_products=extractNumProducts(r, rec_type)
-    taxa_id=extractNumProducts(r, rec_type)
-    go=extractGO(r, rec_type)
-    ec=extractEC(r, rec_type)
-
-    edge = extractEdges(r, rec_type, seq_type)
     seq_version=extractSeqVersion(r, rec_type, seq_type)
-    seq = extractSeq(r, rec_type, seq_type)
-    node = "\t".join([
-        id,
-        db,
-        seq_type, 
-        n_products, 
+    #n_products=extractNumProducts(r, rec_type)
+
+    proteins=identifyProteins(r.annotations)
+    n_products=len(proteins)
+
+    core_fields="\t".join([
+        id, 
+        seq_version,
         date_upload, 
         date_modified, 
-        go,
-        ec,
-        organism,
+        seq_version,
+        organism, 
         taxa_id,
-        prod,
-        str(seq_version),
-        seq
+        taxonomy, 
+        n_products
     ])
-    if db=="uniprot":
-        a=1
+
+    nodes=[]
+    if rec_type=="nucleotide":
+        nodes.append([
+            core_fields,
+            "","","",
+            str(r.seq)
+        ])
+
+    for p in identifyProteins(r.annotations):
+        prod=extractProduct(p, rec_type)
+        go=extractGO(r, p, db)
+        ec=extractEC(r, rec_type)
+        seq = extractSeq(r, rec_type, seq_type)
+        nodes.append("\t".join([prod, go, ec, seq]))
+
+  
+
+    parent_edge=extractParentEdges(nodes, r.annotations, db)
+    edge = extractEdges(r, rec_type)
+
+
     return ([node], ["\t".join([id, e, seq_type,ca.classify_acc(e)[1]]) for e in edge])
 
 
