@@ -620,10 +620,10 @@ ORIGIN
     # What are the 4 highest levels of taxa. Might help with plotting. 
     def test_gb_prot_extractTaxonomy(self):
         obs_pseudo=parser.extractTaxonomy(self.rec_prot_top.annotations)
-        exp_pseudo='Bacteria,Firmicutes,Bacilli,Bacillales'
+        exp_pseudo='Bacteria,Firmicutes,Bacilli,Bacillales,Staphylococcaceae,Staphylococcus'
         
         obs_pseudo_short=parser.extractTaxonomy({'taxonomy':['Bacteria', 'Firmicutes', 'Bacilli']})
-        exp_pseudo_short='Bacteria,Firmicutes,Bacilli,'
+        exp_pseudo_short='Bacteria,Firmicutes,Bacilli,,,'
         
         self.assertEqual(obs_pseudo, exp_pseudo)  
         self.assertEqual(obs_pseudo_short, exp_pseudo_short)  
@@ -655,23 +655,23 @@ ORIGIN
         exp_date=20220407
         self.assertEqual(obs_date, exp_date)  
 
-    def test_gb_prot_extractNumProduct(self):
-        obs_nproduct=parser.extractNumProducts(self.rec_prot_top, self.rec_prot_rec_type)
-        exp_nproduct=1
-        self.assertEqual(obs_nproduct, exp_nproduct)  
-
     def test_gb_prot_extractGo(self):
-        obs_go=parser.extractGO(self.rec_prot_top, self.rec_prot_rec_type)
+       
+        r=self.rec_prot_top
+        prot1={f.type:f for f in (r.features[1],r.features[2])}
+        obs_go=parser.extractGO(self.rec_prot_top, prot1, self.rec_prot_top_db)
         exp_go=sorted(['GO:0006508', 'GO:0045148'])
         self.assertEqual(obs_go, exp_go)  
 
-    def test_gb_prot_extracEC(self):
-        obs_ec=parser.extractEC(self.rec_prot_top, self.rec_prot_rec_type)
+    def test_gb_prot_extractEC(self):
+        r=self.rec_prot_top
+        prot1={f.type:f for f in (r.features[1],r.features[2])}
+        obs_ec=parser.extractEC(prot1['Protein'])
         exp_ec="3.4.11.4"
         self.assertEqual(obs_ec, exp_ec)  
 
     def test_gb_prot_extractTaxaID(self):
-        obs_taxid=parser.extractTaxaID(self.rec_prot_top, self.rec_prot_rec_type)
+        obs_taxid=parser.extractTaxaID(self.rec_prot_top.features[0])
         exp_taxid="taxon:1282"
         self.assertEqual(obs_taxid, exp_taxid)
 
@@ -706,7 +706,7 @@ ORIGIN
     # What are the 4 highest levels of taxa. Might help with plotting. 
     def test_rs_prot_top_extractTaxonomy(self):
         obs_pseudo=parser.extractTaxonomy(self.rec_prot_top_rs.annotations)
-        exp_pseudo='Bacteria,Proteobacteria,Gammaproteobacteria,Enterobacterales' 
+        exp_pseudo='Bacteria,Proteobacteria,Gammaproteobacteria,Enterobacterales,Enterobacteriaceae,Escherichia' 
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     #Figure out when thi was first submitted
@@ -725,23 +725,25 @@ ORIGIN
         exp_date=20220309
         self.assertEqual(obs_date, exp_date)  
 
-    def test_rs_prot_top_extractNumProduct(self):
-        obs_nproduct=parser.extractNumProducts(self.rec_prot_top_rs, self.rec_prot_rec_type)
-        exp_nproduct=1
-        self.assertEqual(obs_nproduct, exp_nproduct)  
-
+  
     def test_rs_prot_top_extractGo(self):
-        obs_go=parser.extractGO(self.rec_prot_top_rs, self.rec_prot_rec_type)
+        r=self.rec_nuc_top_rs
+        prot1={f.type:f for f in (r.features[1],r.features[2])}
+        obs_go=parser.extractGO(self.rec_prot_top_rs, prot1, self.rec_prot_top_db)
+        #obs_go=parser.extractGO(self.rec_prot_top_rs, self.rec_prot_rec_type)
         exp_go=[]
         self.assertEqual(obs_go, exp_go)  
 
     def test_rs_prot_top_extracEC(self):
-        obs_ec=parser.extractEC(self.rec_prot_top_rs, self.rec_prot_rec_type)
-        exp_ec="3.4.11.4"
+        r=self.rec_nuc_top_rs
+        prot1={f.type:f for f in (r.features[1],r.features[2])}
+        obs_ec=parser.extractEC(prot1['CDS'])
+        #obs_ec=parser.extractEC(self.rec_prot_top_rs, self.rec_prot_rec_type)
+        exp_ec=""
         self.assertEqual(obs_ec, exp_ec)  
 
     def test_rs_prot_top_extractTaxaID(self):
-        obs_taxid=parser.extractTaxaID(self.rec_prot_top_rs, self.rec_prot_rec_type)
+        obs_taxid=parser.extractTaxaID(self.rec_prot_top_rs.features[0])
         exp_taxid="taxon:511145"
         self.assertEqual(obs_taxid, exp_taxid)
 
@@ -781,7 +783,7 @@ ORIGIN
     # What are the 4 highest levels of taxa. Might help with plotting. 
     def test_rs_nuc_top_extractTaxonomy(self):
         obs_pseudo=parser.extractTaxonomy(self.rec_nuc_top_rs.annotations)
-        exp_pseudo='Viruses,Varidnaviria,Bamfordvirae,Nucleocytoviricota' 
+        exp_pseudo='Viruses,Varidnaviria,Bamfordvirae,Nucleocytoviricota,Megaviricetes,Pimascovirales' 
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     #Figure out when thi was first submitted
@@ -799,14 +801,12 @@ ORIGIN
         obs_date=parser.extractDateLastModified(self.rec_nuc_top_rs.annotations['date'])
         exp_date=20201220
         self.assertEqual(obs_date, exp_date)  
-
-    def test_rs_nuc_top_extractNumProduct(self):
-        obs_nproduct=parser.extractNumProducts(self.rec_nuc_top_rs, self.rec_nuc_rs_rec_type)
-        exp_nproduct=3
-        self.assertEqual(obs_nproduct, exp_nproduct)  
-
+    
     def test_rs_nuc_top_extractGo(self):
-        obs_go=parser.extractGO(self.rec_nuc_top_rs, self.rec_nuc_rs_rec_type)
+        r=self.rec_nuc_top_rs
+        prot1={f.type:f for f in (r.features[1],r.features[2])}
+        obs_go=parser.extractGO(r, prot1, self.rec_prot_top_db)
+
         exp_go=[]
         self.assertEqual(obs_go, exp_go)  
 
@@ -816,7 +816,7 @@ ORIGIN
         self.assertEqual(obs_ec, exp_ec)  
 
     def test_rs_nuc_top_extractTaxaID(self):
-        obs_taxid=parser.extractTaxaID(self.rec_nuc_top_rs)
+        obs_taxid=parser.extractTaxaID(self.rec_nuc_top_rs.features[0])
         exp_taxid="taxon:10493"
         self.assertEqual(obs_taxid, exp_taxid)
 
