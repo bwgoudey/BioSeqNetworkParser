@@ -592,60 +592,7 @@ ORIGIN
         self.rec_uniprot_dbsource_str=parser.processUniProtDBsource(self.rec_uniprot.annotations['db_source'])
 
 
-        self.rec_uniprot_native_str="""
-ID   001R_FRG3G              Reviewed;         256 AA.
-AC   Q6GZX4;
-DT   28-JUN-2011, integrated into UniProtKB/Swiss-Prot.
-DT   19-JUL-2004, sequence version 1.
-DT   02-JUN-2021, entry version 42.
-DE   RecName: Full=Putative transcription factor 001R;
-GN   ORFNames=FV3-001R;
-OS   Frog virus 3 (isolate Goorha) (FV-3).
-OC   Viruses; Varidnaviria; Bamfordvirae; Nucleocytoviricota; Megaviricetes;
-OC   Pimascovirales; Iridoviridae; Alphairidovirinae; Ranavirus.
-OX   NCBI_TaxID=654924;
-OH   NCBI_TaxID=30343; Dryophytes versicolor (chameleon treefrog).
-OH   NCBI_TaxID=8404; Lithobates pipiens (Northern leopard frog) (Rana pipiens).
-OH   NCBI_TaxID=45438; Lithobates sylvaticus (Wood frog) (Rana sylvatica).
-OH   NCBI_TaxID=8316; Notophthalmus viridescens (Eastern newt) (Triturus viridescens).
-RN   [1]
-RP   NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA].
-RX   PubMed=15165820; DOI=10.1016/j.virol.2004.02.019;
-RA   Tan W.G., Barkman T.J., Gregory Chinchar V., Essani K.;
-RT   "Comparative genomic analyses of frog virus 3, type species of the genus
-RT   Ranavirus (family Iridoviridae).";
-RL   Virology 323:70-84(2004).
-CC   -!- FUNCTION: Transcription activation. {ECO:0000305}.
-CC   ---------------------------------------------------------------------------
-CC   Copyrighted by the UniProt Consortium, see https://www.uniprot.org/terms
-CC   Distributed under the Creative Commons Attribution (CC BY 4.0) License
-CC   ---------------------------------------------------------------------------
-DR   EMBL; AY548484; AAT09660.1; -; Genomic_DNA.
-DR   RefSeq; YP_031579.1; NC_005946.1.
-DR   SwissPalm; Q6GZX4; -.
-DR   GeneID; 2947773; -.
-DR   KEGG; vg:2947773; -.
-DR   Proteomes; UP000008770; Genome.
-DR   GO; GO:0046782; P:regulation of viral transcription; IEA:InterPro.
-DR   InterPro; IPR007031; Poxvirus_VLTF3.
-DR   Pfam; PF04947; Pox_VLTF3; 1.
-PE   4: Predicted;
-KW   Activator; Reference proteome; Transcription; Transcription regulation.
-FT   CHAIN           1..256
-FT                   /note="Putative transcription factor 001R"
-FT                   /id="PRO_0000410512"
-SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
-     MAFSAEDVLK EYDRRRRMEA LLLSLYYPND RKLLDYKEWS PPRVQVECPK APVEWNNPPS
-     EKGLIVGHFS GIKYKGEKAQ ASEVDVNKMC CWVSKFKDAM RRYQGIQTCK IPGKVLSDLD
-     AKIKAYNLTV EGVEGFVRYS RVTKQHVAAF LKELRHSKQY ENVNLIHYIL TDKRVDIQHL
-     EKDLVKDFKA LVESAHRMRQ GHMINVKYIL YQLLKKHGHG PDGPDILTVK TGSKGVLYDD
-     SFRKIYTDLG WKFTPL
-//
-        """
-        self.rec_uniprot_native=SeqIO.parse(StringIO(self.rec_uniprot_native_str), "gb").__iter__().__next__()
-        self.rec_uniprot_native_db='uniprot'
-        self.rec_uniprot_native_seq_type="protein"
-        self.rec_uniprot_native_rec_type="top"
+      
 
 
 
@@ -706,7 +653,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
 
     def test_gb_prot_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec_prot_top.annotations['date'])
+        obs_date=parser.extractDateLastModified(self.rec_prot_top.annotations)
         exp_date=20220407
         self.assertEqual(obs_date, exp_date)  
 
@@ -727,7 +674,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
     def test_gb_prot_extractTaxaID(self):
         obs_taxid=parser.extractTaxaID(self.rec_prot_top.features[0])
-        exp_taxid="taxon:1282"
+        exp_taxid="1282"
         self.assertEqual(obs_taxid, exp_taxid)
 
     def test_gb_prot_extractParentEdges(self):
@@ -754,7 +701,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
         'num_modified': 1, 
         'date_last_modified': 20220407,
         'organism': 'Staphylococcus epidermidis', 
-        'taxa_id': 'taxon:1282', 
+        'taxa_id': '1282', 
         'taxonomy': 'Bacteria,Firmicutes,Bacilli,Bacillales,Staphylococcaceae,Staphylococcus', 
         'n_products': 1, 
         'name': 'peptidase T', 
@@ -808,7 +755,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
 
     def test_rs_prot_top_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec_prot_top_rs.annotations['date'])
+        obs_date=parser.extractDateLastModified(self.rec_prot_top_rs.annotations)
         exp_date=20220309
         self.assertEqual(obs_date, exp_date)  
 
@@ -831,7 +778,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
     def test_rs_prot_top_extractTaxaID(self):
         obs_taxid=parser.extractTaxaID(self.rec_prot_top_rs.features[0])
-        exp_taxid="taxon:511145"
+        exp_taxid="511145"
         self.assertEqual(obs_taxid, exp_taxid)
 
     def test_rs_prot_top_extractParentEdges(self):
@@ -855,7 +802,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
              'num_modified': 11, 
              'date_last_modified': 20220309,
              'organism': 'Escherichia coli str. K-12 substr. MG1655', 
-             'taxa_id': 'taxon:511145',
+             'taxa_id': '511145',
              'taxonomy': 'Bacteria,Proteobacteria,Gammaproteobacteria,Enterobacterales,Enterobacteriaceae,Escherichia', 
              'n_products': 1, 
              'name': 'peptidase T', 
@@ -930,7 +877,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
 
     def test_rs_nuc_top_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec_nuc_top_rs.annotations['date'])
+        obs_date=parser.extractDateLastModified(self.rec_nuc_top_rs.annotations)
         exp_date=20201220
         self.assertEqual(obs_date, exp_date)  
     
@@ -949,7 +896,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
     def test_rs_nuc_top_extractTaxaID(self):
         obs_taxid=parser.extractTaxaID(self.rec_nuc_top_rs.features[0])
-        exp_taxid="taxon:10493"
+        exp_taxid="10493"
         self.assertEqual(obs_taxid, exp_taxid)
 
     def test_rs_nuc_top_extractParentEdges(self):
@@ -985,7 +932,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
         'num_modified': 2, 
         'date_last_modified': 20201220, 
         'organism': 'Frog virus 3', 
-        'taxa_id': 'taxon:10493',
+        'taxa_id': '10493',
         'taxonomy': 'Viruses,Varidnaviria,Bamfordvirae,Nucleocytoviricota,Megaviricetes,Pimascovirales', 
         'n_products': 3, 
         'name': 'Frog virus 3, complete genome', 
@@ -1093,7 +1040,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
 
     def test_uniprot_top_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec_uniprot.annotations['date'])
+        obs_date=parser.extractDateLastModified(self.rec_uniprot.annotations)
         exp_date=20220223
         self.assertEqual(obs_date, exp_date)  
 
@@ -1116,7 +1063,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
     def test_uniprot_top_extractTaxaID(self):
         obs_taxid=parser.extractTaxaID(self.rec_uniprot.features[0])
-        exp_taxid="taxon:386043"
+        exp_taxid="386043"
         self.assertEqual(obs_taxid, exp_taxid)
 
     def test_uniprot_top_extractParentEdges(self):
@@ -1142,7 +1089,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
              'num_modified': -1, 
              'date_last_modified': 20220223, 
              'organism': 'Listeria welshimeri serovar 6b str. SLCC5334',
-             'taxa_id': 'taxon:386043', 
+             'taxa_id': '386043', 
              'taxonomy': 'Bacteria,Firmicutes,Bacilli,Bacillales,Listeriaceae,Listeria', 
              'n_products': 1, 
              'name': 'Peptidase T', 
@@ -1180,129 +1127,3 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
 
 
-
-        ##########
-         # What sort of record? Its a protein, described at top-level 
-    # (i.e whole record is about this protein))
-    def test_uniprot_top_determineRecordType(self):
-        obs_rec_type=parser.determineRecordType(self.rec_uniprot)
-        exp_rec_type="top"
-        self.assertEqual(obs_rec_type, exp_rec_type)        
-
-
-    # Is it a real protein? Discard Psuedo proteins
-    def test_uniprot_top_is_pseudo(self):
-        obs_pseudo=parser.isPseudo(self.rec_uniprot, self.rec_prot_rec_type, self.rec_uniprot_seq_type)
-        exp_pseudo=False
-        self.assertEqual(obs_pseudo, exp_pseudo)  
-
-
-    # What organism are we looking at
-    def test_uniprot_top_extractOrganism(self):
-        obs_pseudo=parser.extractOrganism(self.rec_uniprot.annotations)
-        exp_pseudo="Listeria welshimeri serovar 6b str. SLCC5334"
-        self.assertEqual(obs_pseudo, exp_pseudo)  
-
-    # What are the 4 highest levels of taxa. Might help with plotting. 
-    def test_uniprot_top_extractTaxonomy(self):
-        obs_pseudo=parser.extractTaxonomy(self.rec_uniprot.annotations)
-        exp_pseudo='Bacteria,Firmicutes,Bacilli,Bacillales,Listeriaceae,Listeria' 
-        self.assertEqual(obs_pseudo, exp_pseudo)  
-
-    #Figure out when thi was first submitted
-    def test_uniprot_top_extractDateModified(self):
-        db_str=parser.processUniProtDBsource(self.rec_uniprot.annotations['db_source'])
-        obs=parser.extractDateModified(self.rec_uniprot, self.rec_uniprot_rec_type, db_str)
-        exp_upload=20080115
-        exp_last_mod=20220223
-        exp_nmodify=-1
-        self.assertEqual(obs["first_upload"], exp_upload)  
-        self.assertEqual(obs["last_modify"], exp_last_mod)  
-        self.assertEqual(obs["num_modify"], exp_nmodify)   
-
-
-    def test_uniprot_top_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec_uniprot.annotations['date'])
-        exp_date=20220223
-        self.assertEqual(obs_date, exp_date)  
-
-  
-    def test_uniprot_top_extractGo(self):
-        r=self.rec_uniprot
-        prot1={f.type:f for f in (r.features[1],r.features[4])}
-        obs_go=parser.extractGO(self.rec_uniprot, prot1, self.rec_uniprot_db)
-        #obs_go=parser.extractGO(self.rec_uniprot, self.rec_prot_rec_type)
-        exp_go=['GO:0005737', 'GO:0008237', 'GO:0008270', 'GO:0043171', 'GO:0045148']
-        self.assertEqual(obs_go, exp_go)  
-
-    def test_uniprot_top_extracEC(self):
-        r=self.rec_uniprot
-        prot1={f.type:f for f in (r.features[2],r.features[4])}
-        obs_ec=parser.extractEC(prot1['Protein'])
-        #obs_ec=parser.extractEC(self.rec_uniprot, self.rec_prot_rec_type)
-        exp_ec="3.4.11.4"
-        self.assertEqual(obs_ec, exp_ec)  
-
-    def test_uniprot_top_extractTaxaID(self):
-        obs_taxid=parser.extractTaxaID(self.rec_uniprot.features[0])
-        exp_taxid="taxon:386043"
-        self.assertEqual(obs_taxid, exp_taxid)
-
-    def test_uniprot_top_extractParentEdges(self):
-        db_str=parser.processUniProtDBsource(self.rec_uniprot.annotations['db_source'])
-        r=self.rec_uniprot
-        obs_edges=parser.extractParentEdges(r,self.rec_uniprot_db, db_str)
-        exp_edges=['AM263198.1', 'CAK21216.1', 'WP_011702575.1']
-        self.assertEqual(obs_edges, exp_edges)        
-
-
-    def test_uniprot_top_createTopLevelNode(self):
-            r=self.rec_uniprot  
-            rec_type=self.rec_uniprot_rec_type
-            seq_type=self.rec_uniprot_seq_type
-            db=self.rec_uniprot_db
-            dbsrc_str=self.rec_uniprot_dbsource_str
-            obs=parser.createTopLevelNode(r, rec_type, seq_type, db,dbsrc_str)
-            obs['n']['seq']=obs['n']['seq'][0:10]
-            
-            exp_node={'id': 'A0AJN4.1',
-             'seq_version': 1, 
-             'date_first_upload': 20080115, 
-             'num_modified': -1, 
-             'date_last_modified': 20220223, 
-             'organism': 'Listeria welshimeri serovar 6b str. SLCC5334',
-             'taxa_id': 'taxon:386043', 
-             'taxonomy': 'Bacteria,Firmicutes,Bacilli,Bacillales,Listeriaceae,Listeria', 
-             'n_products': 1, 
-             'name': 'Peptidase T', 
-             'go': ['GO:0005737', 'GO:0008237', 'GO:0008270', 'GO:0043171', 'GO:0045148'], 
-             'ec': '3.4.11.4', 
-             'seq': 'MKEELLKRFT'#, 
-             #'parent': ['AM263198.1', 
-             ##'CAK21216.1', 
-             #'WP_011702575.1']
-             }
-
-            self.assertEqual(obs['n'], exp_node)
-
-            exp_edges=[('A0AJN4.1','AM263198.1'), 
-             ('A0AJN4.1','CAK21216.1'), 
-             ('A0AJN4.1','WP_011702575.1')]
-            self.assertEqual(obs['e'], exp_edges)
-
-
-    def test_uniprotDateStrToNum(self):
-        date_str='Jan 15, 2008'
-        obs=parser.uniprotDateStrToNum(date_str)
-        exp=20080115
-        self.assertEqual(obs, exp)
-
-    def test_uniprot_parseRecord(self):
-        r=self.rec_uniprot  
-        db=self.rec_uniprot_db
-        seq_type=self.rec_uniprot_seq_type
-        obs_node, obs_edge=parser.parseRecord(r, db, seq_type)
-        exp_edge=[('A0AJN4.1', 'AM263198.1'), ('A0AJN4.1', 'CAK21216.1'), ('A0AJN4.1', 'WP_011702575.1')]
-        exp_nodes=1
-        self.assertEqual(len(obs_node), exp_nodes)
-        self.assertEqual(obs_edge, exp_edge)        

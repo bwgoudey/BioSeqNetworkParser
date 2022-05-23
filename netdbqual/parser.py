@@ -1,5 +1,6 @@
 from __future__ import annotations
 from html import entities
+from os import get_blocking
 from xml.dom.minicompat import NodeList
 #from types import NoneType
 import netdbqual.classify_acc as ca
@@ -34,12 +35,13 @@ def extractTaxonomy(r_annots, n_level=6):
     return tax
 
 
-def extractTaxaID(source_feat):
-
+def extractTaxaID(source_feat, r_annot={}):
+    if 'ncbi_taxid' in r_annot: 
+        return r_annot['ncbi_taxid'][0]
     #taxid={f.type:f for f in r.features}['source'].f.
     if source_feat.type!="source":
         raise
-    return(source_feat.qualifiers['db_xref'][0])
+    return source_feat.qualifiers['db_xref'][0].split(":")[1]
 
 
 #
@@ -79,8 +81,15 @@ def extractDateModified(r,db:str, uniprot_dbsource="") -> str:
     modify_dates=[]
     #We make the assumption that the first indication of 
     if uniprot_dbsource:
-        upload=uniprotDateStrToNum(uniprot_dbsource['created'])
-        modify=uniprotDateStrToNum(uniprot_dbsource['annotation updated'])
+        upload=uniprotDateStrToNum(uniprot_dbsource['date'])
+        modify=uniprotDateStrToNum(uniprot_dbsource['annotation_updated'])
+        return({
+                "first_upload":upload,
+                "last_modify":modify,
+                "num_modify":-1 })    
+    elif 'date_last_annotation_update' in r.annotations:
+        upload=gpkDateStrToNum(r.annotations['date_last_annotation_update'])
+        modify=gpkDateStrToNum(r.annotations['date_last_annotation_update'])
         return({
                 "first_upload":upload,
                 "last_modify":modify,
@@ -97,7 +106,7 @@ def extractDateModified(r,db:str, uniprot_dbsource="") -> str:
     
 
 
-def extractDateLastModified(date_str) -> str:
+def extractDateLastModified(r_annot) -> str:
     """Extract the sequence from a given record
 
     Args:
@@ -106,9 +115,10 @@ def extractDateLastModified(date_str) -> str:
     Returns:
         str: 
     """
-    
+    if 'date_last_annotation_update' in r_annot:
+        return gpkDateStrToNum(r_annot['date_last_annotation_update'])
     # For a genbank record
-    return(gpkDateStrToNum(date_str))
+    return gpkDateStrToNum(r_annot['date'])
 
 
 def extractDescription(r_desc):
@@ -120,7 +130,7 @@ def extractDescription(r_desc):
         desc = r_desc.split(' [')[0]       
     
     desc=desc.split("MULTISPECIES: ")[-1]
-    return(desc)
+    return desc
 
 
 
@@ -154,7 +164,7 @@ def extractProduct(feature_dict, seq_type):
     if 'product' in feat.qualifiers:
         product_name=feat.qualifiers['product'][0]
 
-    return ((id, product_name))
+    return (id, product_name)
     
 
 def get_dbxrefs(dbx):
@@ -256,7 +266,7 @@ def extractSeq(r, rec_type: str, seq_type: str) -> str:
         seq = str(r.qualifiers['translation'][0])
     else:
         raise
-    return(seq)
+    return seq
 
 
 def isPseudo(r: SeqRecord, rec_type: str, seq_type: str) -> bool:
@@ -301,7 +311,7 @@ def identifyProteins(r):
     for f in feats:
         key=(f.location.start, f.location.end)
         fd[key][f.type]=f
-    return({k:v for k,v in fd.items() if 'CDS' in v or 'Protein' in v})
+    return {k:v for k,v in fd.items() if 'CDS' in v or 'Protein' in v}
 
 
 
@@ -324,7 +334,7 @@ def extractNcbiGO(p) -> str:
     gos=[re.findall(r'(GO:\d{7})', p[f].qualifiers['note'][0]) for f in relevant_feats if 'note' in p[f].qualifiers]
     gos=sorted(list(set([x for go in gos for x in go])))
 
-    return(gos)
+    return gos
 
 def extractUniprotGo(dbsource) -> str:
     """Extract the sequence from a given record
@@ -340,21 +350,26 @@ def extractUniprotGo(dbsource) -> str:
     
 
 def extractGO(r, p, db):
-    if(db=="uniprot"):
+    if db=="uniprot":
+        if hasattr(r, 'dbxrefs'):
+            return [x[3:] for x in r.dbxrefs if x[0:3]=='GO:']
         return extractUniprotGo(r.annotations['db_source'])
     return extractNcbiGO(p)
 
 
 
 #def extractEC(r,rec_type:str) -> str:
-def extractEC(product) -> str:
+def extractEC(description, uniprot_format, product) -> str:
     """Extract the sequence from a given record
     """
+    if uniprot_format: 
+        return([l[3:].rstrip(";") for l in description.split("; ") if l[0:3]=="EC="])
+
     if 'EC_number' in product.qualifiers:
         ec=product.qualifiers['EC_number']
         assert(len(ec)==1)
         return (ec[0])
-    return("")
+    return ""
 
 
 def determineRecordType(r):
@@ -365,7 +380,7 @@ def determineRecordType(r):
     else:
         raise
 
-    return(rec_type)
+    return rec_type
 
 def extractChildren(r, parent, seq_type, db):
     ps=identifyProteins(r)
@@ -395,7 +410,7 @@ def extractChildren(r, parent, seq_type, db):
             edges.append((child['id'], parent['id']))
     elif len(ps)>1:
         raise
-    return({"n":nodes, "e":edges})
+    return {"n":nodes, "e":edges}
 
 def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
     e={}
@@ -405,10 +420,10 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
     modified_info=extractDateModified(r, rec_type,uniprot_dbsource)
     e['date_first_upload']=modified_info['first_upload']
     e['num_modified']=modified_info['num_modify']
-    e['date_last_modified']=extractDateLastModified(r.annotations['date'])
+    e['date_last_modified']=extractDateLastModified(r.annotations)
 
     e['organism']=extractOrganism(r.annotations)
-    e['taxa_id']=extractTaxaID(r.features[0])
+    e['taxa_id']=extractTaxaID(r.features[0], r.annotations)
     e['taxonomy']=extractTaxonomy(r.annotations)
     
     #n_products=extractNumProducts(r, rec_type)
@@ -416,24 +431,20 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
     proteins=identifyProteins(r)
     e['n_products']=len(proteins)
 
-    # core_fields="\t".join([
-    #     id, 
-    #     seq_version,
-    #     date_upload, 
-    #     date_modified, 
-    #     organism, 
-    #     taxa_id,
-    #     taxonomy, 
-    #     n_products
-    # ])
     e['name']=extractDescription(r.description)
     
     if seq_type=="protein":
         p=list(identifyProteins(r).values())
         if len(p)>1:
             raise
-        e['go']=extractGO(r, p[0], db)
-        e['ec']=extractEC(p[0]['Protein'])
+        
+        source_annot=""
+        if len(p)==1:
+            e['go']=extractGO(r, p[0], db)
+            e['ec']=extractEC(r.description, hasattr(r, 'dbxrefs'), p[0]['Protein'])
+        elif len(p)==0:
+            e['go']=extractGO(r, "", db)
+            e['ec']=extractEC(r.description, hasattr(r, 'dbxrefs'), "")
     else:
         e['go']=""
         e['ec']=""
@@ -441,12 +452,13 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
     e['seq']=str(r.seq)
     edges=extractParentEdges(r,db,uniprot_dbsource)
     edges=[(e['id'], edge) for edge in edges]
-    return({'n':e, 'e':edges})
+    return {'n':e, 'e':edges}
+
 
 
 def processUniProtDBsource(dbsource_str):
     preprocess_str=dbsource_str.replace("; ", ". ").replace("xrefs (n", ". xrefs (n").split(". ")
-    return(dict([x.split(": ") for x in preprocess_str]))
+    return dict([x.split(": ") for x in preprocess_str])
 
 
 
@@ -462,7 +474,7 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
         return
     uniprot_dbsource=""
     if db=="uniprot" and 'db_source' in r.annotations:
-        uniprot_dbsource=processUniProtDBsource(r)
+        uniprot_dbsource=processUniProtDBsource(r.annotations['db_source'])
    
     parent=createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource)
     children=extractChildren(r, parent['n'], seq_type, db)
@@ -471,7 +483,7 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
     edge_strs=parent['e']+children['e']
 
     #return ([node], ["\t".join([id, e, seq_type,ca.#classify_acc(e)[1]]) for e in edge])
-    return (node_strs, edge_strs)
+    return node_strs, edge_strs
 
 
 
