@@ -67,7 +67,7 @@ def extractDateFromJournalStr(date_str):
     return(gpkDateStrToNum(upload_date.groups()[0]))
     
 
-def extractDateModified(r,db:str, uniprot_dbsource="") -> str:
+def extractDateModified(r,uniprot_dbsource="") -> str:
     """Extract the sequence from a given record
 
     Args:
@@ -81,8 +81,8 @@ def extractDateModified(r,db:str, uniprot_dbsource="") -> str:
     modify_dates=[]
     #We make the assumption that the first indication of 
     if uniprot_dbsource:
-        upload=uniprotDateStrToNum(uniprot_dbsource['date'])
-        modify=uniprotDateStrToNum(uniprot_dbsource['annotation_updated'])
+        upload=uniprotDateStrToNum(uniprot_dbsource['created'])
+        modify=uniprotDateStrToNum(uniprot_dbsource['annotation updated'])
         return({
                 "first_upload":upload,
                 "last_modify":modify,
@@ -351,7 +351,7 @@ def extractUniprotGo(dbsource) -> str:
 
 def extractGO(r, p, db):
     if db=="uniprot":
-        if hasattr(r, 'dbxrefs'):
+        if hasattr(r, 'dbxrefs') and len(r.dbxrefs):
             return [x[3:] for x in r.dbxrefs if x[0:3]=='GO:']
         return extractUniprotGo(r.annotations['db_source'])
     return extractNcbiGO(p)
@@ -359,16 +359,25 @@ def extractGO(r, p, db):
 
 
 #def extractEC(r,rec_type:str) -> str:
-def extractEC(description, uniprot_format, product) -> str:
+def extractEC(r, product) -> str:
     """Extract the sequence from a given record
     """
-    if uniprot_format: 
-        return([l[3:].rstrip(";") for l in description.split("; ") if l[0:3]=="EC="])
-
-    if 'EC_number' in product.qualifiers:
+    if product and 'EC_number' in product.qualifiers:
         ec=product.qualifiers['EC_number']
         assert(len(ec)==1)
         return (ec[0])
+
+    #TODO: This fails a lot. Need a better test
+    uniprot_format = hasattr(r, 'dbxrefs') and len(r.dbxrefs)
+    if uniprot_format: 
+        desc=r.description
+        tokens= desc.split("; ")
+        ECs=[l[3:].rstrip(";") for l in tokens if l[0:3]=="EC="]
+        if not ECs:
+            return ""
+        return ECs
+
+
     return ""
 
 
@@ -395,7 +404,7 @@ def extractChildren(r, parent, seq_type, db):
 
             child['id'], child['name']=extractProduct(p, seq_type)
             child['go']=extractGO(r, p, db)
-            child['ec']=extractEC(p['CDS'])
+            child['ec']=extractEC(r, p['CDS'])
             child['n_products']=0
             child['seq']=str(p['CDS'].qualifiers['translation'][0])
             #child['parent']=parent['id']
@@ -417,7 +426,7 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
     e['id'] = r.id
     e['seq_version']=extractSeqVersion(r, rec_type, seq_type)
 
-    modified_info=extractDateModified(r, rec_type,uniprot_dbsource)
+    modified_info=extractDateModified(r,uniprot_dbsource)
     e['date_first_upload']=modified_info['first_upload']
     e['num_modified']=modified_info['num_modify']
     e['date_last_modified']=extractDateLastModified(r.annotations)
@@ -441,10 +450,10 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
         source_annot=""
         if len(p)==1:
             e['go']=extractGO(r, p[0], db)
-            e['ec']=extractEC(r.description, hasattr(r, 'dbxrefs'), p[0]['Protein'])
+            e['ec']=extractEC(r, p[0]['Protein'])
         elif len(p)==0:
             e['go']=extractGO(r, "", db)
-            e['ec']=extractEC(r.description, hasattr(r, 'dbxrefs'), "")
+            e['ec']=extractEC(r,  "")
     else:
         e['go']=""
         e['ec']=""
