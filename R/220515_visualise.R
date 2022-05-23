@@ -37,12 +37,13 @@ classify_acc <- function(acc) {
   I = which(sapply(id_regexs, grepl, acc), arr.ind=T)
   
   #Check to make sure we don't have more than one match
-  stopifnot(all(!duplicated(I[,'row'])))
   if(length(I))
     if(is.integer(I) & length(I)==1) # If only a single acc
       df[1,]=vals[I,]
-    else
+    else {
+      stopifnot(all(!duplicated(I[,'row'])))
       df[I[,'row'],] = vals[I[,'col'], ]
+    }
   return(df)
 }
 # xxx  ------
@@ -51,7 +52,7 @@ nfile="/Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/tmp_EC_3_4
 nodes<-fread(nfile, col.names = c("id", "seq_ver", "seq_type", "product", "org", "db", "seq"))
 nfile="/Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/tmp_EC_3_4_11_4_partial_sequence_append_node.csv"
 nodes<-rbind(nodes, fread(nfile, col.names = c("id", "seq_ver", "seq_type", "product", "org", "db", "seq")))
-nodes$id=gsub("\\.[0-9]$", "", nodes$id)
+#nodes$id=gsub("\\.[0-9]$", "", nodes$id)
 setkey(nodes, 'id')
 #Reclassify proteins baed on accessions
 nodes[, c('db', 'seq_type')]=classify_acc(nodes$id)
@@ -61,8 +62,8 @@ edges<-fread(efile, col.names = c("trg", "src", "trg_type", "src_type"))
 efile="/Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/tmp_EC_3_4_11_4_partial_sequence_append_edge.csv"
 edges<-rbind(edges, fread(efile, col.names = c("trg", "src", "trg_type", "src_type")))
 
-edges$trg = gsub("\\.[0-9]$", "", edges$trg)
-edges$src = gsub("\\.[0-9]$", "", edges$src)
+#edges$trg = gsub("\\.[0-9]$", "", edges$trg)
+#edges$src = gsub("\\.[0-9]$", "", edges$src)
 
 # Reclassify edges based on accessions ----
 edges=edges[, c('trg', 'src')] %>% mutate(trg_db=classify_acc(trg)$db, trg_seq_type=classify_acc(trg)$seq_type,src_db=classify_acc(src)$db, src_seq_type=classify_acc(src)$seq_type )

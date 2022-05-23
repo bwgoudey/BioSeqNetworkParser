@@ -22,6 +22,15 @@ class Test_ClassifyAcc(unittest.TestCase):
         self.assertEqual(exp_db, obs_db)
         self.assertEqual(exp_type, obs_type)
 
+    def test_gb_prot_8(self):
+        acc="UOI52910"
+        exp_db="genbank"
+        exp_type="protein"
+        obs_db, obs_type=ca.classify_acc(acc)
+        self.assertEqual(exp_db, obs_db)
+        self.assertEqual(exp_type, obs_type)
+
+
     def test_gb_nuc(self):
         acc="CP093132"
         exp_db="genbank"

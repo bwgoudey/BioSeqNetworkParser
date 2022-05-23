@@ -1,4 +1,6 @@
 from __future__ import annotations
+from html import entities
+from xml.dom.minicompat import NodeList
 #from types import NoneType
 import netdbqual.classify_acc as ca
 import re
@@ -6,6 +8,7 @@ from typing import List, Tuple
 from Bio import SeqRecord
 from datetime import datetime
 from collections import defaultdict
+import copy
 
 #
 # Taxa
@@ -47,6 +50,11 @@ def gpkDateStrToNum(date_str):
     d=datetime.strptime(date_str, '%d-%b-%Y')
     return(d.year*10000+d.month*100+d.day)
 
+def uniprotDateStrToNum(date_str):
+    d=datetime.strptime(date_str, '%b %d, %Y')
+    return(d.year*10000+d.month*100+d.day)
+
+
 
 def extractDateFromJournalStr(date_str):
     date_regex=re.compile(r"Submitted \((\d{2}-[A-Z]{3}-[0-9]{4})\)")
@@ -57,7 +65,7 @@ def extractDateFromJournalStr(date_str):
     return(gpkDateStrToNum(upload_date.groups()[0]))
     
 
-def extractDateModified(r,rec_type:str) -> str:
+def extractDateModified(r,db:str, uniprot_dbsource="") -> str:
     """Extract the sequence from a given record
 
     Args:
@@ -70,12 +78,23 @@ def extractDateModified(r,rec_type:str) -> str:
     # For a genbank record
     modify_dates=[]
     #We make the assumption that the first indication of 
-    if 'references' in r.annotations and r.annotations['references']:
+    if uniprot_dbsource:
+        upload=uniprotDateStrToNum(uniprot_dbsource['created'])
+        modify=uniprotDateStrToNum(uniprot_dbsource['annotation updated'])
+        return({
+                "first_upload":upload,
+                "last_modify":modify,
+                "num_modify":-1 })    
+    elif 'references' in r.annotations and r.annotations['references']:
         possible_dates=[extractDateFromJournalStr(s.journal) for s in r.annotations['references']]
         modify_dates=list(filter(lambda x: x>0, possible_dates))
     else:
         raise
-    return([modify_dates[-1], modify_dates[0], len(modify_dates)])
+
+    return({"first_upload":modify_dates[-1],
+    "last_modify":modify_dates[0],
+    "num_modify":len(modify_dates) })
+    
 
 
 def extractDateLastModified(date_str) -> str:
@@ -92,12 +111,21 @@ def extractDateLastModified(date_str) -> str:
     return(gpkDateStrToNum(date_str))
 
 
+def extractDescription(r_desc):
+    # For a genbank record
+    desc=""
+    if r_desc[0:7] == "RecName":
+        desc = r_desc.split(";")[0].split("=")[-1]
+    else:
+        desc = r_desc.split(' [')[0]       
+    
+    desc=desc.split("MULTISPECIES: ")[-1]
+    return(desc)
 
 
 
 
-
-def extractProduct(feature_dict, rec_type):
+def extractProduct(feature_dict, seq_type):
     # # For a genbank record
     # prod=""
     # if rec_type == "top":
@@ -114,34 +142,67 @@ def extractProduct(feature_dict, rec_type):
     
     # prod=prod.split("MULTISPECIES: ")[-1]
     # return(prod)
-    if rec_type=="nucleotide":
+    if seq_type=="nucleotide":
         feat=feature_dict['CDS']
     else:
         feat=feature_dict['Protein']
 
-    return(feat.qualifiers['product'])
+    id=""
+    product_name=""
+    if 'protein_id' in feat.qualifiers:
+        id=feat.qualifiers['protein_id'][0]
+    if 'product' in feat.qualifiers:
+        product_name=feat.qualifiers['product'][0]
+
+    return ((id, product_name))
     
 
 def get_dbxrefs(dbx):
     return [id.split(":")[1] for id in dbx if id[0:6]=="RefSeq" or id[0:4]=="EMBL"]
 
 
-def extractParentEdges(r_annot):
-    if 'db_source' in r_annot:
-            # if r.id[0:3]!="WP_":
-            if 'xrefs' in r_annot['db_source']:
-                m = re.search("xrefs: (.*?)[^,] .+[a-z]",
-                              r_annot['db_source'])
-                if m:
-                    edge = m.groups()[0].strip(".").split(", ")
-            elif 'accession ' in r_annot['db_source']:
+def extractRefSeqParentEdge(comment_str):
+    comment_str=comment_str.replace('\n', ' ').replace(' and ', ', ')
+    m=re.search(
+        "The reference sequence was derived from ([A-Z0-9\.,and ]+)\.",  comment_str)
+    if m:
+        return(m.groups()[0].split(", "))
+    m=re.search(
+        "The reference sequence is identical to ([A-Z0-9\.,and ]+)\.", comment_str)
+    if m:
+        return(m.groups()[0].split(", "))
+    else:
+        raise
+
+    
+
+
+def extractParentEdges(r, db, uniprot_dbsource=""):
+    r_annot=r.annotations
+    if db=="refseq":
+        return(extractRefSeqParentEdge(r_annot['comment']))
+    
+    edge=[]
+    if uniprot_dbsource:
+        edge=uniprot_dbsource['xrefs'].strip().split(', ')
+    elif 'db_source' in r_annot:
+            # # if r.id[0:3]!="WP_":
+            # if 'xrefs' in r_annot['db_source']:
+            #     m = re.search("xrefs: (.*?)[^,] .+[a-z]",
+            #                   r_annot['db_source'])
+            #     if m:
+            #         edge = m.groups()[0].strip(".").split(", ")
+            if 'accession ' in r_annot['db_source']:
                 edge = [r_annot['db_source'].split("accession ")[-1]]
     elif hasattr(r, 'dbxrefs'):
             edge=get_dbxrefs(r.dbxrefs)
 
+    return edge
 
-def extractRelatedEdges(cds_features):
-
+def extractEdges(r, rec_type, node, db, ):
+    edge=extractParentEdges(r, db)
+    for n in node[1:]:
+        [r.id, ]
     return edge
 
 
@@ -240,7 +301,7 @@ def identifyProteins(r):
     for f in feats:
         key=(f.location.start, f.location.end)
         fd[key][f.type]=f
-    return({k:v for k,v in fd.items() if 'CDS' in v})
+    return({k:v for k,v in fd.items() if 'CDS' in v or 'Protein' in v})
 
 
 
@@ -260,7 +321,7 @@ def extractNcbiGO(p) -> str:
     relevant_feats=set(p.keys()).intersection(set(['CDS', 'Protein']))
 
     # For a genbank record
-    gos=[re.findall(r'(GO:\d{7})', f.qualifiers['note'][0]) for f in [p['CDS'], ] if 'note' in f.qualifiers]
+    gos=[re.findall(r'(GO:\d{7})', p[f].qualifiers['note'][0]) for f in relevant_feats if 'note' in p[f].qualifiers]
     gos=sorted(list(set([x for go in gos for x in go])))
 
     return(gos)
@@ -280,7 +341,7 @@ def extractUniprotGo(dbsource) -> str:
 
 def extractGO(r, p, db):
     if(db=="uniprot"):
-        return extractUniprotGo(r.annotations['dbsource'])
+        return extractUniprotGo(r.annotations['db_source'])
     return extractNcbiGO(p)
 
 
@@ -306,9 +367,86 @@ def determineRecordType(r):
 
     return(rec_type)
 
+def extractChildren(r, parent, seq_type, db):
+    ps=identifyProteins(r)
+    
+    nodes=[]
+    edges=[]
+
+    if seq_type=="nucleotide":
+        #product_field={'nucleotide':'CDS', 'protein':'Protein'}
+        for p in ps.values():
+            child=copy.deepcopy(parent)
+
+            child['id'], child['name']=extractProduct(p, seq_type)
+            child['go']=extractGO(r, p, db)
+            child['ec']=extractEC(p['CDS'])
+            child['n_products']=0
+            child['seq']=str(p['CDS'].qualifiers['translation'][0])
+            #child['parent']=parent['id']
+            #extractEC(p[product_field[rec_type]])
+            # if len(ps)>1:
+            #     child['id']=p['CDS'].qualifier['protein_id']
+            #     child['seq'] = extractSeq(r, rec_type, seq_type)
+            #     echild_p['parent']=[r.id]
+            #     entities=[e_p]
+            #     break
+            nodes.append(copy.deepcopy(child))
+            edges.append((child['id'], parent['id']))
+    elif len(ps)>1:
+        raise
+    return({"n":nodes, "e":edges})
+
+def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
+    e={}
+    e['id'] = r.id
+    e['seq_version']=extractSeqVersion(r, rec_type, seq_type)
+
+    modified_info=extractDateModified(r, rec_type,uniprot_dbsource)
+    e['date_first_upload']=modified_info['first_upload']
+    e['num_modified']=modified_info['num_modify']
+    e['date_last_modified']=extractDateLastModified(r.annotations['date'])
+
+    e['organism']=extractOrganism(r.annotations)
+    e['taxa_id']=extractTaxaID(r.features[0])
+    e['taxonomy']=extractTaxonomy(r.annotations)
+    
+    #n_products=extractNumProducts(r, rec_type)
+
+    proteins=identifyProteins(r)
+    e['n_products']=len(proteins)
+
+    # core_fields="\t".join([
+    #     id, 
+    #     seq_version,
+    #     date_upload, 
+    #     date_modified, 
+    #     organism, 
+    #     taxa_id,
+    #     taxonomy, 
+    #     n_products
+    # ])
+    e['name']=extractDescription(r.description)
+    
+    if seq_type=="protein":
+        p=list(identifyProteins(r).values())
+        if len(p)>1:
+            raise
+        e['go']=extractGO(r, p[0], db)
+        e['ec']=extractEC(p[0]['Protein'])
+    else:
+        e['go']=""
+        e['ec']=""
+
+    e['seq']=str(r.seq)
+    edges=extractParentEdges(r,db,uniprot_dbsource)
+    edges=[(e['id'], edge) for edge in edges]
+    return({'n':e, 'e':edges})
 
 
-
+def processUniProtDBsource(dbsource_str):
+    preprocess_str=dbsource_str.replace("; ", ". ").replace("xrefs (n", ". xrefs (n").split(". ")
+    return(dict([x.split(": ") for x in preprocess_str]))
 
 
 
@@ -322,54 +460,18 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
     # If its not a CDS or if its a pseudoprotein
     if isPseudo(r, rec_type, seq_type):
         return
+    uniprot_dbsource=""
+    if db=="uniprot" and 'db_source' in r.annotations:
+        uniprot_dbsource=processUniProtDBsource(r)
+   
+    parent=createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource)
+    children=extractChildren(r, parent['n'], seq_type, db)
+    #edge = extractEdges(r, rec_type, nodes)
+    node_strs=[parent['n']]+children['n']
+    edge_strs=parent['e']+children['e']
 
-    id = r.id
-    organism=extractOrganism(r.annotations)
-    taxonomy=extractTaxonomy(r.annotations)
-    taxa_id=extractTaxaID(r.features[0])
-
-    date_upload=extractDateModified(r, rec_type)
-    date_modified=extractDateLastModified(r, rec_type)
-    seq_version=extractSeqVersion(r, rec_type, seq_type)
-    #n_products=extractNumProducts(r, rec_type)
-
-    proteins=identifyProteins(r.annotations)
-    n_products=len(proteins)
-
-    core_fields="\t".join([
-        id, 
-        seq_version,
-        date_upload, 
-        date_modified, 
-        seq_version,
-        organism, 
-        taxa_id,
-        taxonomy, 
-        n_products
-    ])
-
-    nodes=[]
-    if rec_type=="nucleotide":
-        nodes.append([
-            core_fields,
-            "","","",
-            str(r.seq)
-        ])
-    product_field={'nucleotide':'CDS', 'protein':'Protein'}
-    for p in identifyProteins(r.annotations):
-        prod=extractProduct(p, rec_type)
-        go=extractGO(r, p, db)
-        ec=extractEC(p[product_field[rec_type]])
-        seq = extractSeq(r, rec_type, seq_type)
-        nodes.append("\t".join([prod, go, ec, seq]))
-
-  
-
-    parent_edge=extractParentEdges(nodes, r.annotations, db)
-    edge = extractEdges(r, rec_type)
-
-
-    return ([node], ["\t".join([id, e, seq_type,ca.classify_acc(e)[1]]) for e in edge])
+    #return ([node], ["\t".join([id, e, seq_type,ca.#classify_acc(e)[1]]) for e in edge])
+    return (node_strs, edge_strs)
 
 
 

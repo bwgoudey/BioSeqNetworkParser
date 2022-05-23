@@ -1,3 +1,4 @@
+from sqlite3 import dbapi2
 import unittest   # The test framework
 from importlib import reload  # Python 3.4+
 from netdbqual import parser
@@ -386,87 +387,87 @@ FEATURES             Location/Qualifiers
                      VMGTKDSNNKSLKTYFEVFETFTIGALMKHSGVTPTAFVDRRWLDNTIYHMGFIPWGR
                      DMRFVVEYDLDGTNPFLNTVPTLMSVKRKAKIQEMFDNMVSRMVTS"
 ORIGIN      
-            1 aagctttaac agattcatga aattgtattt tattaaggga taactggtaa cccgagaaga
-            61 cgtcaaagaa ctttgacagc aatgcgcaaa aaagagagat taagactaat ctctctcaat
-            121 actaagaatg tctttggact aaaaatgtgg tacactacat ttctagtcta tctctgtcag
-            181 aaaatcttaa gattctatcc ctttcagaag atattatctt gatacaccga taacctcaag
-            241 acctagttct gcgacgctac ggtaactata aatggcattc tcggcagaag atgtgctgaa
-            301 ggagtacgac aggagacgga ggatggaggc cctcttgctc agcctgtact acccaaacga
-            361 ccgcaagctc ctagactaca aagagtggtc tccgcccagg gttcaggtag agtgtcccaa
-            421 agcccccgtg gagtggaaca accctccgtc agaaaagggt ctcatcgtgg ggcactttag
-            481 cggcataaag tacaaggggg aaaaggctca ggcatccgag gtagacgtca acaagatgtg
-            541 ctgctgggtg tccaagttta aagacgccat gaggaggtac cagggcatac agacttgcaa
-            601 gatccccggc aaggtcctgt cggacctcga cgccaaaata aaggcttaca acctcaccgt
-            661 tgagggcgta gagggtttcg tgaggtactc acgagtgacc aagcagcacg tagcagcttt
-            721 cctcaaggag ctcaggcact ctaagcagta cgaaaacgtc aacctcatcc actacatcct
-            781 caccgacaag agggtagaca ttcagcacct ggaaaaggat cttgtcaagg attttaaggc
-            841 gctggtggaa tctgctcaca ggatgaggca gggccacatg atcaacgtaa agtacatact
-            901 ctaccagctc ctcaagaagc acggtcacgg gccagacggt ccagacatcc tgaccgtaaa
-            961 gactggaagc aagggagtct tgtacgacga ttcctttcgc aagatttaca cggacctcgg
-            1021 gtggaagttt acccccctat gaaggtcggg gattgagagt atatcctaca agagtatctc
-            1081 atacaaacac gtatccgaca agcgtctata gctcttgtcg gatctgagat gctaacgcgc
-            1141 tgcaactgtt ttaggacaag aatgaggtgt aacatattaa aatactttac tatctcaaga
-            1201 acctttatcg taagatactt tcaggagaag aaggagatgt aacatcttaa gatatagctt
-            1261 ctctcagaaa gtttctagga caagaaggag atgtaacaac atttatagtc ttaagatata
-            1321 gcttctctca gaaagtttat aggatgagaa ggagatgtaa caacatttat agaatatctt
-            1381 acgatagtaa tcttaagata ctttactact atcgtaagat actctctcaa gattaagact
-            1441 gtcttttggt ctaaaaacgt ggtacaacat ttatagtctt ttacgctctc agaaactttc
-            1501 taggacaaga cggagatgta atatcttagg ataaagtctt aagagatctt tactctttca
-            1561 gaagactttc tctcagaaga ctctcgacat tatatctcta gatcttgtaa attcttgtcc
-            1621 tactcacagg accagaattt ataaccgctt accatctcac tgtagagatc agtatagcca
-            1681 ccagcactgc tccggccaca aagaacatta ccttcctgtt gtgcaccggc ctgggagtgg
-            1741 ggggagtggg gggagtggga ggagtgggag gagtgggagg agtgggagga gtgggaggag
-            1801 tgggtttggg aggcggcgga ggagggacgt acttggaaaa gtcacagttt atagtgttct
-            1861 tgacgtcgtc catggtcacg ctcccgtcgt cgagcatgtt aaacactatc tggcacactt
-            1921 gggtaggaca gtttgtcggc gtgtccctct gggtccccat ctttagctct ccgacgtcag
-            1981 ccgcgcaggg cacgtaccag cactggtcgg ggtaggcgtg gagagtcttt accttctggt
-            2041 agacgggatc gctggccctg tttatgcact tgcagtctgc cgctccgggg ttcttgatac
-            2101 agaaggagcc cagggcggcg tcctggtcgg ggcccctgtg ggccgagtac cactttctgc
-            2161 accagccccc ggcggggtcc gcgtccgagg acaccctgct cacgagctcc ccggccgtgt
-            2221 tctttacccc cctcatgcag tacctctcgg ccaggctggg agactcgccg aacatggaca
-            2281 caaactggtc cacctgggcc tgggtgtcta tcaggtccgc gtcgtatgtg cacctcacgt
-            2341 aaggggcccc cctcgagtcc cactcggcgc tcaccagagg gtccttaccc ttggaagagt
-            2401 acctgaggcc gcacacttgg gtctttttta tgcgggcgca caggggctga gaggtgcaga
-            2461 agcccgaggc gcacgtctgc tcccccaggt cccagtcctt gccgcaggtg cccctgggtg
-            2521 tgaaggcgct gcagcccccg gcgtagcagg ggccggccga gtacgtgtcg gacttgtcgt
-            2581 tctgtaatct ggtcgctccg atgatggaca ttttaatagc ctttttctct cacgagggag
-            2641 ggtaaatttt aacagtctgg ggtccaggac acaatctctg ctagagcgca accgcgggga
-            2701 gggttcctga gctctggaaa gtacctggcg cacacggcgt cgggcctagt ggcccagccg
-            2761 gcgtcctgcg aggacaggtc ggcggcctct atatccgagg cgatcctcgc tgcggtcttt
-            2821 gacagaggcg agaaggccct ggcgacctcc gcggtgcagt ctgcaaactc cttgacgggg
-            2881 aacatcctgg gcatcctcct gtccctcctg gaggccggga cgacgtcggt gtctgagact
-            2941 ccagcgtccc ctctccagcc acaggccccc ctcttggtcc tcacagcgac acccacagga
-            3001 gtgcccctct cgccgtggtc cgggtcgatc accgcgtcgt acacgacagt gtcgtggaag
-            3061 ccgtcgagca tgacgtgcgg ggcgtcgcac ctcaggtgga actctctgtc ccccatcctg
-            3121 tagagcctga aagagttgcg gtgcctgggg tcgggagccg ccagcctcac tgccgatggc
-            3181 ctgagcctgg agtgcgccat ggccatctcg ccgtgcatga cggctgtggc catgagggcc
-            3241 tgctggaggc agttgtccac cgtctcctca gaaggggaaa agtgctccag ccagtcgccg
-            3301 agggtgtagt cgtagtgctc gtgaggaccg gcgtagaccc ctacacccgc cccggtgttt
-            3361 aggaggacgt ccgaggcgta cctcctgtgg tcctcgtgct tggacctgtg cctgtccatg
-            3421 gccaggcccc tcttgggaaa gacgtcgtct gtgcggcggc gtctggaaag tctgtcggcg
-            3481 tgcagcatat tctttttttt aagaaagttc tgtcagaaaa tggcatcgct agtgtttcta
-            3541 aacagccccg tctaccagat gagtaacatc ctcctcacgg agaggaggca ggtggacagg
-            3601 gcgatgggag ggtcggacga cgacggcgtc atggtcgtgg ccctgtcccc ctcggacttt
-            3661 aagactgtcc tggggtctgc cctcctcgcc gtggagaggg acatggtaca cgtcgtacca
-            3721 aagtacctgc agacgccggg gatcctccac gacatgctcg tgttgcttac ccccatattc
-            3781 ggcgaggccc tgtcggttga catgagtggc gccacggacg tcatggttca gcagattgcc
-            3841 acggcggggt tcgtagacgt agacccgctt cactcttctg tgtcgtggaa ggacaacgtg
-            3901 tcttgcccgg tggcgttgct ggccgtctcc aacgccgtca ggaccatgat gggacagccc
-            3961 tgtcaggtca ccctcatcat agacgtcggc acccagaaca tcctgaggga cctggtgaac
-            4021 ctcccagtgg agatgtccgg agacctccag gttatggcat acaccaagga ccccctgggg
-            4081 aaggttccag ccgtaggagt gtccgtgttt gacagcgggt cggtgcagaa gggggacgct
-            4141 cactccgtgg gagcccccga cggcctcgtg tccttccaca cccaccctgt gtcgtccgcg
-            4201 gtcgaactaa actaccacgc ggggtggccc tccaacgtag acatgtcctc cctgctcacc
-            4261 atgaagaacc tcatgcacgt ggttgtcgcg gaggagggcc tgtggactat ggcgaggacc
-            4321 ctgtccatgc agaggctcac caaggtcctc acggatgcgg aaaaggacgt catgagggcc
-            4381 gcggccttta acctgtttct ccccctcaac gaactcaggg tgatggggac caaggacagc
-            4441 aacaacaagt ccctcaagac ttactttgag gtgtttgaga cgtttaccat aggagccctg
-            4501 atgaagcact ctggcgtgac ccccaccgcc tttgtggaca ggaggtggct ggacaacacc
-            4561 atttaccaca tgggcttcat cccgtggggc agagacatga ggttcgtggt agagtacgac
-            4621 ctggacggca ccaacccatt cctgaacact gtccccaccc tcatgtccgt caagagaaag
-            4681 gccaaaatcc aggagatgtt tgacaacatg gtgagcagga tggtcacctc ataataattt
-            4741 tttcccacac tctggggaaa aaaaaccagt cgagatgaac gcaaaatacg acacagatca
-            4801 gggcgtcggt cgcatgcttt tccttggtac gatcggcctc gccgtagttg tcggaggcct
+        1 aagctttaac agattcatga aattgtattt tattaaggga taactggtaa cccgagaaga
+       61 cgtcaaagaa ctttgacagc aatgcgcaaa aaagagagat taagactaat ctctctcaat
+      121 actaagaatg tctttggact aaaaatgtgg tacactacat ttctagtcta tctctgtcag
+      181 aaaatcttaa gattctatcc ctttcagaag atattatctt gatacaccga taacctcaag
+      241 acctagttct gcgacgctac ggtaactata aatggcattc tcggcagaag atgtgctgaa
+      301 ggagtacgac aggagacgga ggatggaggc cctcttgctc agcctgtact acccaaacga
+      361 ccgcaagctc ctagactaca aagagtggtc tccgcccagg gttcaggtag agtgtcccaa
+      421 agcccccgtg gagtggaaca accctccgtc agaaaagggt ctcatcgtgg ggcactttag
+      481 cggcataaag tacaaggggg aaaaggctca ggcatccgag gtagacgtca acaagatgtg
+      541 ctgctgggtg tccaagttta aagacgccat gaggaggtac cagggcatac agacttgcaa
+      601 gatccccggc aaggtcctgt cggacctcga cgccaaaata aaggcttaca acctcaccgt
+      661 tgagggcgta gagggtttcg tgaggtactc acgagtgacc aagcagcacg tagcagcttt
+      721 cctcaaggag ctcaggcact ctaagcagta cgaaaacgtc aacctcatcc actacatcct
+      781 caccgacaag agggtagaca ttcagcacct ggaaaaggat cttgtcaagg attttaaggc
+      841 gctggtggaa tctgctcaca ggatgaggca gggccacatg atcaacgtaa agtacatact
+      901 ctaccagctc ctcaagaagc acggtcacgg gccagacggt ccagacatcc tgaccgtaaa
+      961 gactggaagc aagggagtct tgtacgacga ttcctttcgc aagatttaca cggacctcgg
+      1021 gtggaagttt acccccctat gaaggtcggg gattgagagt atatcctaca agagtatctc
+      1081 atacaaacac gtatccgaca agcgtctata gctcttgtcg gatctgagat gctaacgcgc
+      1141 tgcaactgtt ttaggacaag aatgaggtgt aacatattaa aatactttac tatctcaaga
+      1201 acctttatcg taagatactt tcaggagaag aaggagatgt aacatcttaa gatatagctt
+      1261 ctctcagaaa gtttctagga caagaaggag atgtaacaac atttatagtc ttaagatata
+      1321 gcttctctca gaaagtttat aggatgagaa ggagatgtaa caacatttat agaatatctt
+      1381 acgatagtaa tcttaagata ctttactact atcgtaagat actctctcaa gattaagact
+      1441 gtcttttggt ctaaaaacgt ggtacaacat ttatagtctt ttacgctctc agaaactttc
+      1501 taggacaaga cggagatgta atatcttagg ataaagtctt aagagatctt tactctttca
+      1561 gaagactttc tctcagaaga ctctcgacat tatatctcta gatcttgtaa attcttgtcc
+      1621 tactcacagg accagaattt ataaccgctt accatctcac tgtagagatc agtatagcca
+      1681 ccagcactgc tccggccaca aagaacatta ccttcctgtt gtgcaccggc ctgggagtgg
+      1741 ggggagtggg gggagtggga ggagtgggag gagtgggagg agtgggagga gtgggaggag
+      1801 tgggtttggg aggcggcgga ggagggacgt acttggaaaa gtcacagttt atagtgttct
+      1861 tgacgtcgtc catggtcacg ctcccgtcgt cgagcatgtt aaacactatc tggcacactt
+      1921 gggtaggaca gtttgtcggc gtgtccctct gggtccccat ctttagctct ccgacgtcag
+      1981 ccgcgcaggg cacgtaccag cactggtcgg ggtaggcgtg gagagtcttt accttctggt
+      2041 agacgggatc gctggccctg tttatgcact tgcagtctgc cgctccgggg ttcttgatac
+      2101 agaaggagcc cagggcggcg tcctggtcgg ggcccctgtg ggccgagtac cactttctgc
+      2161 accagccccc ggcggggtcc gcgtccgagg acaccctgct cacgagctcc ccggccgtgt
+      2221 tctttacccc cctcatgcag tacctctcgg ccaggctggg agactcgccg aacatggaca
+      2281 caaactggtc cacctgggcc tgggtgtcta tcaggtccgc gtcgtatgtg cacctcacgt
+      2341 aaggggcccc cctcgagtcc cactcggcgc tcaccagagg gtccttaccc ttggaagagt
+      2401 acctgaggcc gcacacttgg gtctttttta tgcgggcgca caggggctga gaggtgcaga
+      2461 agcccgaggc gcacgtctgc tcccccaggt cccagtcctt gccgcaggtg cccctgggtg
+      2521 tgaaggcgct gcagcccccg gcgtagcagg ggccggccga gtacgtgtcg gacttgtcgt
+      2581 tctgtaatct ggtcgctccg atgatggaca ttttaatagc ctttttctct cacgagggag
+      2641 ggtaaatttt aacagtctgg ggtccaggac acaatctctg ctagagcgca accgcgggga
+      2701 gggttcctga gctctggaaa gtacctggcg cacacggcgt cgggcctagt ggcccagccg
+      2761 gcgtcctgcg aggacaggtc ggcggcctct atatccgagg cgatcctcgc tgcggtcttt
+      2821 gacagaggcg agaaggccct ggcgacctcc gcggtgcagt ctgcaaactc cttgacgggg
+      2881 aacatcctgg gcatcctcct gtccctcctg gaggccggga cgacgtcggt gtctgagact
+      2941 ccagcgtccc ctctccagcc acaggccccc ctcttggtcc tcacagcgac acccacagga
+      3001 gtgcccctct cgccgtggtc cgggtcgatc accgcgtcgt acacgacagt gtcgtggaag
+      3061 ccgtcgagca tgacgtgcgg ggcgtcgcac ctcaggtgga actctctgtc ccccatcctg
+      3121 tagagcctga aagagttgcg gtgcctgggg tcgggagccg ccagcctcac tgccgatggc
+      3181 ctgagcctgg agtgcgccat ggccatctcg ccgtgcatga cggctgtggc catgagggcc
+      3241 tgctggaggc agttgtccac cgtctcctca gaaggggaaa agtgctccag ccagtcgccg
+      3301 agggtgtagt cgtagtgctc gtgaggaccg gcgtagaccc ctacacccgc cccggtgttt
+      3361 aggaggacgt ccgaggcgta cctcctgtgg tcctcgtgct tggacctgtg cctgtccatg
+      3421 gccaggcccc tcttgggaaa gacgtcgtct gtgcggcggc gtctggaaag tctgtcggcg
+      3481 tgcagcatat tctttttttt aagaaagttc tgtcagaaaa tggcatcgct agtgtttcta
+      3541 aacagccccg tctaccagat gagtaacatc ctcctcacgg agaggaggca ggtggacagg
+      3601 gcgatgggag ggtcggacga cgacggcgtc atggtcgtgg ccctgtcccc ctcggacttt
+      3661 aagactgtcc tggggtctgc cctcctcgcc gtggagaggg acatggtaca cgtcgtacca
+      3721 aagtacctgc agacgccggg gatcctccac gacatgctcg tgttgcttac ccccatattc
+      3781 ggcgaggccc tgtcggttga catgagtggc gccacggacg tcatggttca gcagattgcc
+      3841 acggcggggt tcgtagacgt agacccgctt cactcttctg tgtcgtggaa ggacaacgtg
+      3901 tcttgcccgg tggcgttgct ggccgtctcc aacgccgtca ggaccatgat gggacagccc
+      3961 tgtcaggtca ccctcatcat agacgtcggc acccagaaca tcctgaggga cctggtgaac
+      4021 ctcccagtgg agatgtccgg agacctccag gttatggcat acaccaagga ccccctgggg
+      4081 aaggttccag ccgtaggagt gtccgtgttt gacagcgggt cggtgcagaa gggggacgct
+      4141 cactccgtgg gagcccccga cggcctcgtg tccttccaca cccaccctgt gtcgtccgcg
+      4201 gtcgaactaa actaccacgc ggggtggccc tccaacgtag acatgtcctc cctgctcacc
+      4261 atgaagaacc tcatgcacgt ggttgtcgcg gaggagggcc tgtggactat ggcgaggacc
+      4321 ctgtccatgc agaggctcac caaggtcctc acggatgcgg aaaaggacgt catgagggcc
+      4381 gcggccttta acctgtttct ccccctcaac gaactcaggg tgatggggac caaggacagc
+      4441 aacaacaagt ccctcaagac ttactttgag gtgtttgaga cgtttaccat aggagccctg
+      4501 atgaagcact ctggcgtgac ccccaccgcc tttgtggaca ggaggtggct ggacaacacc
+      4561 atttaccaca tgggcttcat cccgtggggc agagacatga ggttcgtggt agagtacgac
+      4621 ctggacggca ccaacccatt cctgaacact gtccccaccc tcatgtccgt caagagaaag
+      4681 gccaaaatcc aggagatgtt tgacaacatg gtgagcagga tggtcacctc ataataattt
+      4741 tttcccacac tctggggaaa aaaaaccagt cgagatgaac gcaaaatacg acacagatca
+      4801 gggcgtcggt cgcatgcttt tccttggtac gatcggcctc gccgtagttg tcggaggcct
 //
     """
         self.rec_nuc_top_rs=SeqIO.parse(StringIO(self.rec_nuc_top_rs_str), "gb").__iter__().__next__()
@@ -588,9 +589,63 @@ ORIGIN
         self.rec_uniprot_db='uniprot'
         self.rec_uniprot_seq_type="protein"
         self.rec_uniprot_rec_type="top"
+        self.rec_uniprot_dbsource_str=parser.processUniProtDBsource(self.rec_uniprot.annotations['db_source'])
 
 
-
+        self.rec_uniprot_native_str="""
+ID   001R_FRG3G              Reviewed;         256 AA.
+AC   Q6GZX4;
+DT   28-JUN-2011, integrated into UniProtKB/Swiss-Prot.
+DT   19-JUL-2004, sequence version 1.
+DT   02-JUN-2021, entry version 42.
+DE   RecName: Full=Putative transcription factor 001R;
+GN   ORFNames=FV3-001R;
+OS   Frog virus 3 (isolate Goorha) (FV-3).
+OC   Viruses; Varidnaviria; Bamfordvirae; Nucleocytoviricota; Megaviricetes;
+OC   Pimascovirales; Iridoviridae; Alphairidovirinae; Ranavirus.
+OX   NCBI_TaxID=654924;
+OH   NCBI_TaxID=30343; Dryophytes versicolor (chameleon treefrog).
+OH   NCBI_TaxID=8404; Lithobates pipiens (Northern leopard frog) (Rana pipiens).
+OH   NCBI_TaxID=45438; Lithobates sylvaticus (Wood frog) (Rana sylvatica).
+OH   NCBI_TaxID=8316; Notophthalmus viridescens (Eastern newt) (Triturus viridescens).
+RN   [1]
+RP   NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA].
+RX   PubMed=15165820; DOI=10.1016/j.virol.2004.02.019;
+RA   Tan W.G., Barkman T.J., Gregory Chinchar V., Essani K.;
+RT   "Comparative genomic analyses of frog virus 3, type species of the genus
+RT   Ranavirus (family Iridoviridae).";
+RL   Virology 323:70-84(2004).
+CC   -!- FUNCTION: Transcription activation. {ECO:0000305}.
+CC   ---------------------------------------------------------------------------
+CC   Copyrighted by the UniProt Consortium, see https://www.uniprot.org/terms
+CC   Distributed under the Creative Commons Attribution (CC BY 4.0) License
+CC   ---------------------------------------------------------------------------
+DR   EMBL; AY548484; AAT09660.1; -; Genomic_DNA.
+DR   RefSeq; YP_031579.1; NC_005946.1.
+DR   SwissPalm; Q6GZX4; -.
+DR   GeneID; 2947773; -.
+DR   KEGG; vg:2947773; -.
+DR   Proteomes; UP000008770; Genome.
+DR   GO; GO:0046782; P:regulation of viral transcription; IEA:InterPro.
+DR   InterPro; IPR007031; Poxvirus_VLTF3.
+DR   Pfam; PF04947; Pox_VLTF3; 1.
+PE   4: Predicted;
+KW   Activator; Reference proteome; Transcription; Transcription regulation.
+FT   CHAIN           1..256
+FT                   /note="Putative transcription factor 001R"
+FT                   /id="PRO_0000410512"
+SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
+     MAFSAEDVLK EYDRRRRMEA LLLSLYYPND RKLLDYKEWS PPRVQVECPK APVEWNNPPS
+     EKGLIVGHFS GIKYKGEKAQ ASEVDVNKMC CWVSKFKDAM RRYQGIQTCK IPGKVLSDLD
+     AKIKAYNLTV EGVEGFVRYS RVTKQHVAAF LKELRHSKQY ENVNLIHYIL TDKRVDIQHL
+     EKDLVKDFKA LVESAHRMRQ GHMINVKYIL YQLLKKHGHG PDGPDILTVK TGSKGVLYDD
+     SFRKIYTDLG WKFTPL
+//
+        """
+        self.rec_uniprot_native=SeqIO.parse(StringIO(self.rec_uniprot_native_str), "gb").__iter__().__next__()
+        self.rec_uniprot_native_db='uniprot'
+        self.rec_uniprot_native_seq_type="protein"
+        self.rec_uniprot_native_rec_type="top"
 
 
 
@@ -641,13 +696,13 @@ ORIGIN
 
     #Figure out when thi was first submitted
     def test_gb_prot_extractDateModified(self):
-        obs_upload, obs_last_mod, obs_nmodify=parser.extractDateModified(self.rec_prot_top, self.rec_prot_rec_type)
+        obs=parser.extractDateModified(self.rec_prot_top, self.rec_prot_rec_type)
         exp_upload=20220331
         exp_last_mod=20220331
         exp_nmodify=1
-        self.assertEqual(obs_upload, exp_upload)  
-        self.assertEqual(obs_last_mod, exp_last_mod)  
-        self.assertEqual(obs_nmodify, exp_nmodify)  
+        self.assertEqual(obs["first_upload"], exp_upload)  
+        self.assertEqual(obs["last_modify"], exp_last_mod)  
+        self.assertEqual(obs["num_modify"], exp_nmodify)   
 
 
     def test_gb_prot_extractDateLastModified(self):
@@ -675,10 +730,42 @@ ORIGIN
         exp_taxid="taxon:1282"
         self.assertEqual(obs_taxid, exp_taxid)
 
-    def test_gb_prot_extractEdges(self):
-        obs_edges=parser.extractEdges(self.rec_prot_top, self.rec_prot_rec_type, self.rec_prot_top_seq_type)
+    def test_gb_prot_extractParentEdges(self):
+        obs_edges=parser.extractParentEdges(self.rec_prot_top, self.rec_prot_top_db)
         exp_edges=['CP094865.1']
         self.assertEqual(obs_edges, exp_edges)
+
+    # def test_gb_prot_extractEdges(self):
+    #     obs_edges=parser.extractEdges(self.rec_prot_top, self.rec_prot_top_db)
+    #     exp_edges=[(self.rec_prot_top.id, 'CP094865.1')]
+    #     self.assertEqual(obs_edges, exp_edges)
+
+    def test_gb_prot_top_createTopLevelNode(self):
+        r=self.rec_prot_top  
+        rec_type=self.rec_prot_rec_type
+        seq_type=self.rec_prot_top_seq_type
+        db=self.rec_prot_top_db
+        obs=parser.createTopLevelNode(r, rec_type, seq_type, db)
+        obs['n']['seq']=obs['n']['seq'][0:10]
+        
+        exp_node={'id': 'UOH70005.1', 
+        'seq_version': 1, 
+        'date_first_upload': 20220331, 
+        'num_modified': 1, 
+        'date_last_modified': 20220407,
+        'organism': 'Staphylococcus epidermidis', 
+        'taxa_id': 'taxon:1282', 
+        'taxonomy': 'Bacteria,Firmicutes,Bacilli,Bacillales,Staphylococcaceae,Staphylococcus', 
+        'n_products': 1, 
+        'name': 'peptidase T', 
+        'go': ['GO:0006508', 'GO:0045148'], 
+        'ec': '3.4.11.4', 
+        'seq': 'MKKQIIERLT'
+        #'parent': ['CP094865.1']
+        }
+
+        self.assertEqual(obs['n'], exp_node)
+        self.assertEqual(obs['e'], [('UOH70005.1', 'CP094865.1')])
 
 
         ##########
@@ -711,13 +798,13 @@ ORIGIN
 
     #Figure out when thi was first submitted
     def test_rs_prot_top_extractDateModified(self):
-        obs_upload, obs_last_mod, obs_nmodify=parser.extractDateModified(self.rec_prot_top_rs, self.rec_prot_rec_type)
+        obs=parser.extractDateModified(self.rec_prot_top_rs, self.rec_prot_rec_type)
         exp_upload=19970116
         exp_last_mod=20220308
         exp_nmodify=11
-        self.assertEqual(obs_upload, exp_upload)  
-        self.assertEqual(obs_last_mod, exp_last_mod)  
-        self.assertEqual(obs_nmodify, exp_nmodify)  
+        self.assertEqual(obs["first_upload"], exp_upload)  
+        self.assertEqual(obs["last_modify"], exp_last_mod)  
+        self.assertEqual(obs["num_modify"], exp_nmodify)   
 
 
     def test_rs_prot_top_extractDateLastModified(self):
@@ -727,16 +814,16 @@ ORIGIN
 
   
     def test_rs_prot_top_extractGo(self):
-        r=self.rec_nuc_top_rs
-        prot1={f.type:f for f in (r.features[1],r.features[2])}
+        r=self.rec_prot_top_rs
+        prot1={f.type:f for f in (r.features[1],r.features[4])}
         obs_go=parser.extractGO(self.rec_prot_top_rs, prot1, self.rec_prot_top_db)
         #obs_go=parser.extractGO(self.rec_prot_top_rs, self.rec_prot_rec_type)
         exp_go=[]
         self.assertEqual(obs_go, exp_go)  
 
     def test_rs_prot_top_extracEC(self):
-        r=self.rec_nuc_top_rs
-        prot1={f.type:f for f in (r.features[1],r.features[2])}
+        r=self.rec_prot_top_rs
+        prot1={f.type:f for f in (r.features[1],r.features[4])}
         obs_ec=parser.extractEC(prot1['CDS'])
         #obs_ec=parser.extractEC(self.rec_prot_top_rs, self.rec_prot_rec_type)
         exp_ec=""
@@ -747,16 +834,61 @@ ORIGIN
         exp_taxid="taxon:511145"
         self.assertEqual(obs_taxid, exp_taxid)
 
-    def test_rs_prot_top_extractEdges(self):
-        obs_edges=parser.extractEdges(self.rec_prot_top_rs, self.rec_prot_top_rs_rec_type, self.rec_prot_top_rs_seq_type)
-        exp_edges=['NC_000913.3'] 
+    def test_rs_prot_top_extractParentEdges(self):
+        r_annots=self.rec_prot_top_rs
+        obs_edges=parser.extractParentEdges(r_annots,self.rec_prot_top_rs_db)
+        exp_edges=['AAC74211'] 
         self.assertEqual(obs_edges, exp_edges)        
 
 
+    def test_rs_prot_top_createTopLevelNode(self):
+            r=self.rec_prot_top_rs  
+            rec_type=self.rec_prot_top_rs_rec_type
+            seq_type=self.rec_prot_top_rs_seq_type
+            db=self.rec_prot_top_rs_db
+            obs=parser.createTopLevelNode(r, rec_type, seq_type, db)
+            obs['n']['seq']=obs['n']['seq'][0:10]
+            
+            exp_node={'id': 'NP_415645.1', 
+            'seq_version': 1,
+             'date_first_upload': 19970116, 
+             'num_modified': 11, 
+             'date_last_modified': 20220309,
+             'organism': 'Escherichia coli str. K-12 substr. MG1655', 
+             'taxa_id': 'taxon:511145',
+             'taxonomy': 'Bacteria,Proteobacteria,Gammaproteobacteria,Enterobacterales,Enterobacteriaceae,Escherichia', 
+             'n_products': 1, 
+             'name': 'peptidase T', 
+             'go': [],
+             'ec': '3.4.11.4', 
+             'seq': 'MDKLLERFLN'
+             #'parent': ['AAC74211']
+             }
+
+            self.assertEqual(obs['n'], exp_node)
+
+            exp_edges=[('NP_415645.1', 'AAC74211')]
+            self.assertEqual(obs['e'], exp_edges)
 
 
 
 
+    def test_ExtractRefSeqParentEdge(self):
+        x="REVIEWED REFSEQ: This record has been curated by NCBI staff. The\nreference sequence was derived from BY793553.1, AK134931.1,\nBF018223.1 and BG807829.1."        
+        
+        obs_refs=parser.extractRefSeqParentEdge(x)
+        exp_refs=["BY793553.1", "AK134931.1","BF018223.1", "BG807829.1"]
+        self.assertEqual(obs_refs, exp_refs)
+
+        x="The reference sequence was derived from D16669.1."
+        obs_refs=parser.extractRefSeqParentEdge(x)
+        exp_refs=["D16669.1"]
+        self.assertEqual(obs_refs, exp_refs)
+
+        x='PROVISIONAL REFSEQ: This record has not yet been subject to final\nNCBI review. The reference sequence was derived from AY548484.\nOn Jul 12, 2012 this sequence version replaced NC_012637.1.\nCOMPLETENESS: full length.'
+        obs_refs=parser.extractRefSeqParentEdge(x)
+        exp_refs=["AY548484"]
+        self.assertEqual(obs_refs, exp_refs)
 
     ##########
          # What sort of record? Its a protein, described at top-level 
@@ -788,13 +920,13 @@ ORIGIN
 
     #Figure out when thi was first submitted
     def test_rs_nuc_top_extractDateModified(self):
-        obs_upload, obs_last_mod, obs_nmodify=parser.extractDateModified(self.rec_nuc_top_rs, self.rec_nuc_rs_rec_type)
+        obs=parser.extractDateModified(self.rec_nuc_top_rs, self.rec_nuc_rs_rec_type)
         exp_upload=20040218#18-FEB-2004
         exp_last_mod=20040818#18-AUG-2004
         exp_nmodify=2
-        self.assertEqual(obs_upload, exp_upload)  
-        self.assertEqual(obs_last_mod, exp_last_mod)  
-        self.assertEqual(obs_nmodify, exp_nmodify)  
+        self.assertEqual(obs["first_upload"], exp_upload)  
+        self.assertEqual(obs["last_modify"], exp_last_mod)  
+        self.assertEqual(obs["num_modify"], exp_nmodify)  
 
 
     def test_rs_nuc_top_extractDateLastModified(self):
@@ -822,19 +954,355 @@ ORIGIN
 
     def test_rs_nuc_top_extractParentEdges(self):
         r=self.rec_nuc_top_rs        
-        obs_edges=parser.extractParentEdges(self.rec_nuc_top_rs_db, r.annotations, r.comment)
+        obs_edges=parser.extractParentEdges(r, self.rec_nuc_top_rs_db)
         exp_edges=['AY548484'] 
         self.assertEqual(obs_edges, exp_edges)   
 
-    def test_rs_nuc_top_extractEdges(self):
-        r=self.rec_nuc_top_rs
-        fd={f.type:f for f in (r.features[1],r.features[2])}
-        obs_edges=parser.extractRelatedEdges(fd)
-        exp_edges={"YP_031579.1":[]}
-        self.assertEqual(obs_edges, exp_edges)    
+    # def test_rs_nuc_top_extractEdges(self):
+    #     r=self.rec_nuc_top_rs
+    #     fd={f.type:f for f in (r.features[1],r.features[2])}
+    #     obs_edges=parser.extractRelatedEdges(fd)
+    #     exp_edges={"YP_031579.1":[]}
+    #     self.assertEqual(obs_edges, exp_edges)    
 
     def test_rs_nuc_top_identifyProteins(self):
         obs_prots=parser.identifyProteins(self.rec_nuc_top_rs)
         obs_nprots=len(obs_prots)
         exp_nprots=3
         self.assertEqual(obs_nprots, exp_nprots)
+
+    def test_rs_nuc_top_createTopLevelNode(self):
+        r=self.rec_nuc_top_rs  
+        rec_type=self.rec_nuc_rs_rec_type
+        seq_type=self.rec_nuc_top_rs_seq_type
+        db=self.rec_nuc_top_rs_db
+        obs=parser.createTopLevelNode(r, rec_type, seq_type, db)
+        obs['n']['seq']=obs['n']['seq'][0:10]
+        
+        exp_node={'id': 'NC_005946.1', 
+        'seq_version': 1, 
+        'date_first_upload': 20040218, 
+        'num_modified': 2, 
+        'date_last_modified': 20201220, 
+        'organism': 'Frog virus 3', 
+        'taxa_id': 'taxon:10493',
+        'taxonomy': 'Viruses,Varidnaviria,Bamfordvirae,Nucleocytoviricota,Megaviricetes,Pimascovirales', 
+        'n_products': 3, 
+        'name': 'Frog virus 3, complete genome', 
+        'go': '', 
+        'ec': '', 
+        'seq': "AAGCTTTAAC"
+        #'parent': ['AY548484']
+        }
+        self.assertEqual(obs['n'], exp_node)
+        self.assertEqual(obs['e'],[('NC_005946.1', 'AY548484')])
+
+
+
+    def test_rs_nuc_top_extractChildren(self):
+        r=self.rec_nuc_top_rs  
+        rec_type=self.rec_nuc_rs_rec_type
+        seq_type=self.rec_nuc_top_rs_seq_type
+        db=self.rec_nuc_top_rs_db
+        parent=parser.createTopLevelNode(r, rec_type, seq_type, db)
+        obs=parser.extractChildren(r, parent['n'], seq_type, db)
+        
+        #NAmes
+        obs_ids=[p['id'] for p in obs['n']]
+        exp_ids=['YP_031579.1', 'YP_031580.1', 'YP_031581.1']
+        self.assertEqual(obs_ids, exp_ids)
+
+        obs_names=[p['name'] for p in obs['n']]
+        exp_names=['putative replicating factor', 'putative myristylated membrane protein', 'orf229L protein-like protein']
+        self.assertEqual(obs_names, exp_names)
+
+        obs_go=[p['go'] for p in obs['n']]
+        exp_go=[[], [], []]
+        self.assertEqual(obs_go, exp_go)
+
+        obs_ec=[p['ec'] for p in obs['n']]
+        exp_ec=['', '', '']
+        self.assertEqual(obs_ec, exp_ec)
+
+        #obs_ec=[p['parent'] for p in obs['n']]
+        #exp_ec=['NC_005946.1', 'NC_005946.1','NC_005946.1']
+        #self.assertEqual(obs_ec, exp_ec)
+
+        obs_edges=obs['e']
+        exp_edges=[('YP_031579.1', 'NC_005946.1'), 
+        ('YP_031580.1', 'NC_005946.1'), 
+        ('YP_031581.1', 'NC_005946.1')]
+        self.assertEqual(obs_edges, exp_edges)
+
+
+
+    def test_rs_nuc_parseRecord(self):
+        r=self.rec_nuc_top_rs  
+        seq_type=self.rec_nuc_top_rs_seq_type
+        db=self.rec_nuc_top_rs_db
+        obs_node, obs_edge=parser.parseRecord(r, db, seq_type)
+        exp_edge=[('NC_005946.1', 'AY548484'), 
+        ('YP_031579.1', 'NC_005946.1'), 
+        ('YP_031580.1', 'NC_005946.1'), 
+        ('YP_031581.1', 'NC_005946.1')]
+        exp_nodes=4
+        self.assertEqual(len(obs_node), exp_nodes)
+        self.assertEqual(obs_edge, exp_edge)
+
+
+
+
+        ##########
+         # What sort of record? Its a protein, described at top-level 
+    # (i.e whole record is about this protein))
+    def test_uniprot_top_determineRecordType(self):
+        obs_rec_type=parser.determineRecordType(self.rec_uniprot)
+        exp_rec_type="top"
+        self.assertEqual(obs_rec_type, exp_rec_type)        
+
+
+    # Is it a real protein? Discard Psuedo proteins
+    def test_uniprot_top_is_pseudo(self):
+        obs_pseudo=parser.isPseudo(self.rec_uniprot, self.rec_prot_rec_type, self.rec_uniprot_seq_type)
+        exp_pseudo=False
+        self.assertEqual(obs_pseudo, exp_pseudo)  
+
+
+    # What organism are we looking at
+    def test_uniprot_top_extractOrganism(self):
+        obs_pseudo=parser.extractOrganism(self.rec_uniprot.annotations)
+        exp_pseudo="Listeria welshimeri serovar 6b str. SLCC5334"
+        self.assertEqual(obs_pseudo, exp_pseudo)  
+
+    # What are the 4 highest levels of taxa. Might help with plotting. 
+    def test_uniprot_top_extractTaxonomy(self):
+        obs_pseudo=parser.extractTaxonomy(self.rec_uniprot.annotations)
+        exp_pseudo='Bacteria,Firmicutes,Bacilli,Bacillales,Listeriaceae,Listeria' 
+        self.assertEqual(obs_pseudo, exp_pseudo)  
+
+    #Figure out when thi was first submitted
+    def test_uniprot_top_extractDateModified(self):
+        db_str=parser.processUniProtDBsource(self.rec_uniprot.annotations['db_source'])
+        obs=parser.extractDateModified(self.rec_uniprot, self.rec_uniprot_rec_type, db_str)
+        exp_upload=20080115
+        exp_last_mod=20220223
+        exp_nmodify=-1
+        self.assertEqual(obs["first_upload"], exp_upload)  
+        self.assertEqual(obs["last_modify"], exp_last_mod)  
+        self.assertEqual(obs["num_modify"], exp_nmodify)   
+
+
+    def test_uniprot_top_extractDateLastModified(self):
+        obs_date=parser.extractDateLastModified(self.rec_uniprot.annotations['date'])
+        exp_date=20220223
+        self.assertEqual(obs_date, exp_date)  
+
+  
+    def test_uniprot_top_extractGo(self):
+        r=self.rec_uniprot
+        prot1={f.type:f for f in (r.features[1],r.features[4])}
+        obs_go=parser.extractGO(self.rec_uniprot, prot1, self.rec_uniprot_db)
+        #obs_go=parser.extractGO(self.rec_uniprot, self.rec_prot_rec_type)
+        exp_go=['GO:0005737', 'GO:0008237', 'GO:0008270', 'GO:0043171', 'GO:0045148']
+        self.assertEqual(obs_go, exp_go)  
+
+    def test_uniprot_top_extracEC(self):
+        r=self.rec_uniprot
+        prot1={f.type:f for f in (r.features[2],r.features[4])}
+        obs_ec=parser.extractEC(prot1['Protein'])
+        #obs_ec=parser.extractEC(self.rec_uniprot, self.rec_prot_rec_type)
+        exp_ec="3.4.11.4"
+        self.assertEqual(obs_ec, exp_ec)  
+
+    def test_uniprot_top_extractTaxaID(self):
+        obs_taxid=parser.extractTaxaID(self.rec_uniprot.features[0])
+        exp_taxid="taxon:386043"
+        self.assertEqual(obs_taxid, exp_taxid)
+
+    def test_uniprot_top_extractParentEdges(self):
+        db_str=parser.processUniProtDBsource(self.rec_uniprot.annotations['db_source'])
+        r=self.rec_uniprot
+        obs_edges=parser.extractParentEdges(r,self.rec_uniprot_db, db_str)
+        exp_edges=['AM263198.1', 'CAK21216.1', 'WP_011702575.1']
+        self.assertEqual(obs_edges, exp_edges)        
+
+
+    def test_uniprot_top_createTopLevelNode(self):
+            r=self.rec_uniprot  
+            rec_type=self.rec_uniprot_rec_type
+            seq_type=self.rec_uniprot_seq_type
+            db=self.rec_uniprot_db
+            dbsrc_str=self.rec_uniprot_dbsource_str
+            obs=parser.createTopLevelNode(r, rec_type, seq_type, db,dbsrc_str)
+            obs['n']['seq']=obs['n']['seq'][0:10]
+            
+            exp_node={'id': 'A0AJN4.1',
+             'seq_version': 1, 
+             'date_first_upload': 20080115, 
+             'num_modified': -1, 
+             'date_last_modified': 20220223, 
+             'organism': 'Listeria welshimeri serovar 6b str. SLCC5334',
+             'taxa_id': 'taxon:386043', 
+             'taxonomy': 'Bacteria,Firmicutes,Bacilli,Bacillales,Listeriaceae,Listeria', 
+             'n_products': 1, 
+             'name': 'Peptidase T', 
+             'go': ['GO:0005737', 'GO:0008237', 'GO:0008270', 'GO:0043171', 'GO:0045148'], 
+             'ec': '3.4.11.4', 
+             'seq': 'MKEELLKRFT'#, 
+             #'parent': ['AM263198.1', 
+             ##'CAK21216.1', 
+             #'WP_011702575.1']
+             }
+
+            self.assertEqual(obs['n'], exp_node)
+
+            exp_edges=[('A0AJN4.1','AM263198.1'), 
+             ('A0AJN4.1','CAK21216.1'), 
+             ('A0AJN4.1','WP_011702575.1')]
+            self.assertEqual(obs['e'], exp_edges)
+
+
+    def test_uniprotDateStrToNum(self):
+        date_str='Jan 15, 2008'
+        obs=parser.uniprotDateStrToNum(date_str)
+        exp=20080115
+        self.assertEqual(obs, exp)
+
+    def test_uniprot_parseRecord(self):
+        r=self.rec_uniprot  
+        db=self.rec_uniprot_db
+        seq_type=self.rec_uniprot_seq_type
+        obs_node, obs_edge=parser.parseRecord(r, db, seq_type)
+        exp_edge=[('A0AJN4.1', 'AM263198.1'), ('A0AJN4.1', 'CAK21216.1'), ('A0AJN4.1', 'WP_011702575.1')]
+        exp_nodes=1
+        self.assertEqual(len(obs_node), exp_nodes)
+        self.assertEqual(obs_edge, exp_edge)
+
+
+
+
+        ##########
+         # What sort of record? Its a protein, described at top-level 
+    # (i.e whole record is about this protein))
+    def test_uniprot_top_determineRecordType(self):
+        obs_rec_type=parser.determineRecordType(self.rec_uniprot)
+        exp_rec_type="top"
+        self.assertEqual(obs_rec_type, exp_rec_type)        
+
+
+    # Is it a real protein? Discard Psuedo proteins
+    def test_uniprot_top_is_pseudo(self):
+        obs_pseudo=parser.isPseudo(self.rec_uniprot, self.rec_prot_rec_type, self.rec_uniprot_seq_type)
+        exp_pseudo=False
+        self.assertEqual(obs_pseudo, exp_pseudo)  
+
+
+    # What organism are we looking at
+    def test_uniprot_top_extractOrganism(self):
+        obs_pseudo=parser.extractOrganism(self.rec_uniprot.annotations)
+        exp_pseudo="Listeria welshimeri serovar 6b str. SLCC5334"
+        self.assertEqual(obs_pseudo, exp_pseudo)  
+
+    # What are the 4 highest levels of taxa. Might help with plotting. 
+    def test_uniprot_top_extractTaxonomy(self):
+        obs_pseudo=parser.extractTaxonomy(self.rec_uniprot.annotations)
+        exp_pseudo='Bacteria,Firmicutes,Bacilli,Bacillales,Listeriaceae,Listeria' 
+        self.assertEqual(obs_pseudo, exp_pseudo)  
+
+    #Figure out when thi was first submitted
+    def test_uniprot_top_extractDateModified(self):
+        db_str=parser.processUniProtDBsource(self.rec_uniprot.annotations['db_source'])
+        obs=parser.extractDateModified(self.rec_uniprot, self.rec_uniprot_rec_type, db_str)
+        exp_upload=20080115
+        exp_last_mod=20220223
+        exp_nmodify=-1
+        self.assertEqual(obs["first_upload"], exp_upload)  
+        self.assertEqual(obs["last_modify"], exp_last_mod)  
+        self.assertEqual(obs["num_modify"], exp_nmodify)   
+
+
+    def test_uniprot_top_extractDateLastModified(self):
+        obs_date=parser.extractDateLastModified(self.rec_uniprot.annotations['date'])
+        exp_date=20220223
+        self.assertEqual(obs_date, exp_date)  
+
+  
+    def test_uniprot_top_extractGo(self):
+        r=self.rec_uniprot
+        prot1={f.type:f for f in (r.features[1],r.features[4])}
+        obs_go=parser.extractGO(self.rec_uniprot, prot1, self.rec_uniprot_db)
+        #obs_go=parser.extractGO(self.rec_uniprot, self.rec_prot_rec_type)
+        exp_go=['GO:0005737', 'GO:0008237', 'GO:0008270', 'GO:0043171', 'GO:0045148']
+        self.assertEqual(obs_go, exp_go)  
+
+    def test_uniprot_top_extracEC(self):
+        r=self.rec_uniprot
+        prot1={f.type:f for f in (r.features[2],r.features[4])}
+        obs_ec=parser.extractEC(prot1['Protein'])
+        #obs_ec=parser.extractEC(self.rec_uniprot, self.rec_prot_rec_type)
+        exp_ec="3.4.11.4"
+        self.assertEqual(obs_ec, exp_ec)  
+
+    def test_uniprot_top_extractTaxaID(self):
+        obs_taxid=parser.extractTaxaID(self.rec_uniprot.features[0])
+        exp_taxid="taxon:386043"
+        self.assertEqual(obs_taxid, exp_taxid)
+
+    def test_uniprot_top_extractParentEdges(self):
+        db_str=parser.processUniProtDBsource(self.rec_uniprot.annotations['db_source'])
+        r=self.rec_uniprot
+        obs_edges=parser.extractParentEdges(r,self.rec_uniprot_db, db_str)
+        exp_edges=['AM263198.1', 'CAK21216.1', 'WP_011702575.1']
+        self.assertEqual(obs_edges, exp_edges)        
+
+
+    def test_uniprot_top_createTopLevelNode(self):
+            r=self.rec_uniprot  
+            rec_type=self.rec_uniprot_rec_type
+            seq_type=self.rec_uniprot_seq_type
+            db=self.rec_uniprot_db
+            dbsrc_str=self.rec_uniprot_dbsource_str
+            obs=parser.createTopLevelNode(r, rec_type, seq_type, db,dbsrc_str)
+            obs['n']['seq']=obs['n']['seq'][0:10]
+            
+            exp_node={'id': 'A0AJN4.1',
+             'seq_version': 1, 
+             'date_first_upload': 20080115, 
+             'num_modified': -1, 
+             'date_last_modified': 20220223, 
+             'organism': 'Listeria welshimeri serovar 6b str. SLCC5334',
+             'taxa_id': 'taxon:386043', 
+             'taxonomy': 'Bacteria,Firmicutes,Bacilli,Bacillales,Listeriaceae,Listeria', 
+             'n_products': 1, 
+             'name': 'Peptidase T', 
+             'go': ['GO:0005737', 'GO:0008237', 'GO:0008270', 'GO:0043171', 'GO:0045148'], 
+             'ec': '3.4.11.4', 
+             'seq': 'MKEELLKRFT'#, 
+             #'parent': ['AM263198.1', 
+             ##'CAK21216.1', 
+             #'WP_011702575.1']
+             }
+
+            self.assertEqual(obs['n'], exp_node)
+
+            exp_edges=[('A0AJN4.1','AM263198.1'), 
+             ('A0AJN4.1','CAK21216.1'), 
+             ('A0AJN4.1','WP_011702575.1')]
+            self.assertEqual(obs['e'], exp_edges)
+
+
+    def test_uniprotDateStrToNum(self):
+        date_str='Jan 15, 2008'
+        obs=parser.uniprotDateStrToNum(date_str)
+        exp=20080115
+        self.assertEqual(obs, exp)
+
+    def test_uniprot_parseRecord(self):
+        r=self.rec_uniprot  
+        db=self.rec_uniprot_db
+        seq_type=self.rec_uniprot_seq_type
+        obs_node, obs_edge=parser.parseRecord(r, db, seq_type)
+        exp_edge=[('A0AJN4.1', 'AM263198.1'), ('A0AJN4.1', 'CAK21216.1'), ('A0AJN4.1', 'WP_011702575.1')]
+        exp_nodes=1
+        self.assertEqual(len(obs_node), exp_nodes)
+        self.assertEqual(obs_edge, exp_edge)        
