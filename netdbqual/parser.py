@@ -3,6 +3,7 @@ from html import entities
 from os import get_blocking
 from xml.dom.minicompat import NodeList
 #from types import NoneType
+
 import netdbqual.classify_acc as ca
 import re
 from typing import List, Tuple
@@ -97,8 +98,14 @@ def extractDateModified(r,uniprot_dbsource="") -> str:
     elif 'references' in r.annotations and r.annotations['references']:
         possible_dates=[extractDateFromJournalStr(s.journal) for s in r.annotations['references']]
         modify_dates=list(filter(lambda x: x>0, possible_dates))
-    else:
-        raise
+    
+    if r.id[0:3]=='WP_' or not modify_dates:
+        return({
+                "first_upload":"",
+                "last_modify":"",
+                "num_modify":-1 }) 
+    #else:
+    #    raise
 
     return({"first_upload":modify_dates[-1],
     "last_modify":modify_dates[0],
@@ -174,13 +181,17 @@ def get_dbxrefs(dbx):
 def extractRefSeqParentEdge(comment_str):
     comment_str=comment_str.replace('\n', ' ').replace(' and ', ', ')
     m=re.search(
-        "The reference sequence was derived from ([A-Z0-9\.,and ]+)\.",  comment_str)
+        "The reference sequence was derived from ([_A-Z0-9\.,and ]+)\.",  comment_str)
     if m:
         return(m.groups()[0].split(", "))
     m=re.search(
-        "The reference sequence is identical to ([A-Z0-9\.,and ]+)\.", comment_str)
+        "The reference sequence is identical to ([_A-Z0-9\.,and ]+)\.", comment_str)
     if m:
         return(m.groups()[0].split(", "))
+    m=re.search(
+        "This record is derived from a genomic sequence \(([_A-Z0-9\.,and ]+)\)", comment_str)
+    if m:
+        return(m.groups()[0].split(", "))        
     else:
         raise
 
@@ -193,7 +204,7 @@ def extractParentEdges(r, db, uniprot_dbsource=""):
         return(extractRefSeqParentEdge(r_annot['comment']))
     
     edge=[]
-    if uniprot_dbsource:
+    if uniprot_dbsource and 'xrefs' in uniprot_dbsource:
         edge=uniprot_dbsource['xrefs'].strip().split(', ')
     elif 'db_source' in r_annot:
             # # if r.id[0:3]!="WP_":
@@ -351,9 +362,12 @@ def extractUniprotGo(dbsource) -> str:
 
 def extractGO(r, p, db):
     if db=="uniprot":
-        if hasattr(r, 'dbxrefs') and len(r.dbxrefs):
+        if hasattr(r, 'ncbi_taxid'):
             return [x[3:] for x in r.dbxrefs if x[0:3]=='GO:']
-        return extractUniprotGo(r.annotations['db_source'])
+        elif 'db_source' in r.annotations:
+            return extractUniprotGo(r.annotations['db_source'])
+        else:
+            return []   
     return extractNcbiGO(p)
 
 
@@ -364,8 +378,8 @@ def extractEC(r, product) -> str:
     """
     if product and 'EC_number' in product.qualifiers:
         ec=product.qualifiers['EC_number']
-        assert(len(ec)==1)
-        return (ec[0])
+        #assert(len(ec)==1)
+        return (','.join(ec))
 
     #TODO: This fails a lot. Need a better test
     uniprot_format = hasattr(r, 'dbxrefs') and len(r.dbxrefs)
@@ -415,7 +429,7 @@ def extractChildren(r, parent, seq_type, db):
             #     echild_p['parent']=[r.id]
             #     entities=[e_p]
             #     break
-            nodes.append(copy.deepcopy(child))
+            nodes.append(child.values())
             edges.append((child['id'], parent['id']))
     elif len(ps)>1:
         raise
@@ -466,8 +480,9 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
 
 
 def processUniProtDBsource(dbsource_str):
-    preprocess_str=dbsource_str.replace("; ", ". ").replace("xrefs (n", ". xrefs (n").split(". ")
-    return dict([x.split(": ") for x in preprocess_str])
+    preprocess_str=dbsource_str.replace("; ", ". ").replace("xrefs (n", ". xrefs (n")
+    preprocess_str=preprocess_str.replace(' created', '. created').replace('extra accessions:', 'extra accessions: ').split(". ")
+    return dict([x.split(": ") for x in preprocess_str if x])
 
 
 
@@ -488,11 +503,11 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
     parent=createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource)
     children=extractChildren(r, parent['n'], seq_type, db)
     #edge = extractEdges(r, rec_type, nodes)
-    node_strs=[parent['n']]+children['n']
+    node_strs=[parent['n'].values()]+children['n']
     edge_strs=parent['e']+children['e']
 
     #return ([node], ["\t".join([id, e, seq_type,ca.#classify_acc(e)[1]]) for e in edge])
-    return node_strs, edge_strs
+    return node_strs, edge_strs, list(parent['n'].keys())
 
 
 
