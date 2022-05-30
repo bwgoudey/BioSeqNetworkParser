@@ -428,7 +428,8 @@ def extractChildren(r, parent, seq_type, db):
             child['go']=extractGO(r, p, db)
             child['ec']=extractEC(r, p['CDS'])
             child['n_products']=0
-            child['seq']=str(p['CDS'].qualifiers['translation'][0])
+            if 'translation' in p['CDS'].qualifiers:
+                child['seq']=str(p['CDS'].qualifiers['translation'][0])
             #child['parent']=parent['id']
             #extractEC(p[product_field[rec_type]])
             # if len(ps)>1:
