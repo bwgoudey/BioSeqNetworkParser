@@ -52,7 +52,7 @@ def classify_acc(acc):
     acc_regexs={
        ("uniprot", "protein"):re.compile("^(([A-N,R-Z][0-9]([A-Z][A-Z, 0-9][A-Z, 0-9][0-9]){1,2})|([O,P,Q][0-9][A-Z, 0-9][A-Z, 0-9][A-Z, 0-9][0-9]))(.\\d+)?$"),
        ("genbank", "protein"):re.compile("^[A-Z]{3}(\\d{5}|\\d{7})(\\.\\d+)?$"),
-       ("genbank", "nucleotide"):re.compile("^(([U]\\d{5})|([A-Z]{2}\\d{6}))(\\.\\d+)?$"),
+       ("genbank", "nucleotide"):re.compile("^(([U]\\d{5})|([A-Z]{2}\\d{6}))(\\.\\d+)?$|([A-Z]\\d{5}\\.\\d+)"),
        ("genbank", "contig"):re.compile("^([A-Z]{4}\\d{8}(\\d+)?)|([A-Z]{6}\\d{9}(\\d+)?)$"),
        ("refseq", "protein"):re.compile("^((AP|NP|XP|YP|ZP)_\\d+)(\\.\\d+)?$"),
        ("refseq.anon", "protein"):re.compile("^((WP)_\\d+)(.\\d+)?$"),

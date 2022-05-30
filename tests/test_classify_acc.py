@@ -71,9 +71,6 @@ class Test_ClassifyAcc(unittest.TestCase):
         self.assertEqual(exp_db, obs_db)
         self.assertEqual(exp_type, obs_type)
 
-
-
-
     def test_refseq_nuc2(self):
         acc="NZ_D13972.1"
         exp_db="refseq"
@@ -82,6 +79,21 @@ class Test_ClassifyAcc(unittest.TestCase):
         self.assertEqual(exp_db, obs_db)
         self.assertEqual(exp_type, obs_type)
 
+    def test_refseq_nuc3(self):
+        acc="D11473.1"
+        exp_db="genbank"
+        exp_type="nucleotide"
+        obs_db, obs_type=ca.classify_acc(acc)
+        self.assertEqual(exp_db, obs_db)
+        self.assertEqual(exp_type, obs_type)
+
+    def test_refseq_nuc3(self):
+        acc="M11473.1"
+        exp_db="genbank"
+        exp_type="nucleotide"
+        obs_db, obs_type=ca.classify_acc(acc)
+        self.assertEqual(exp_db, obs_db)
+        self.assertEqual(exp_type, obs_type)
 
     def test_refseq_nuc_assembly(self):
         acc="NZ_JAGDKW010000001.1"
