@@ -43,7 +43,9 @@ def extractTaxaID(source_feat, r_annot={}):
     #taxid={f.type:f for f in r.features}['source'].f.
     if source_feat.type!="source":
         raise
-    return source_feat.qualifiers['db_xref'][0].split(":")[1]
+    if 'db_xref' in source_feat.qualifiers:
+        return source_feat.qualifiers['db_xref'][0].split(":")[1]
+        return ""
 
 
 #
@@ -415,7 +417,9 @@ def extractChildren(r, parent, seq_type, db):
     if seq_type=="nucleotide" or seq_type == "contig":
         #product_field={'nucleotide':'CDS', 'protein':'Protein'}
         for p in ps.values():
-            if ('gene' in p and 'pseudo' in p['gene'].qualifiers) or ('CDS' in p and 'pseudo' in p['CDS'].qualifiers):
+            if ('gene' in p and 'pseudo' in p['gene'].qualifiers) or \
+                ('CDS' in p and 'pseudo' in p['CDS'].qualifiers or \
+                'pseudogene' in p['CDS'].qualifiers ):
                 continue
 
             child=copy.deepcopy(parent)

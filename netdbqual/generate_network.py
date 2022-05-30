@@ -16,7 +16,7 @@ def main():
     Usage: generate_network.py  [-i INPUT] [-f FORMAT]
 
     Options:
-        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/bacteria.3.genomic.gbff.gz]
+        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/gbbct694.seq.gz]
         -f FORMAT   --format FORMAT    [default: gb]
     """
 
@@ -39,7 +39,7 @@ def main():
     #gbs_iter=SeqIO.parse(f, "swiss")
     
     if f[-2:]=="gz":
-        gbs_iter=SeqIO.parse(gzip.open(f, "rt"), fmt)
+        gbs_iter=SeqIO.parse(gzip.open(f, "rt", encoding='utf8', errors='ignore'), fmt)
     else:
         gbs_iter=SeqIO.parse(f, fmt)
 
