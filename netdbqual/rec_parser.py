@@ -415,7 +415,7 @@ def extractChildren(r, parent, seq_type, db):
     if seq_type=="nucleotide" or seq_type == "contig":
         #product_field={'nucleotide':'CDS', 'protein':'Protein'}
         for p in ps.values():
-            if 'gene' in p and 'pseudo' in p['gene'].qualifiers:
+            if ('gene' in p and 'pseudo' in p['gene'].qualifiers) or ('CDS' in p and 'pseudo' in p['CDS'].qualifiers):
                 continue
 
             child=copy.deepcopy(parent)
