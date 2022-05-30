@@ -1,10 +1,11 @@
 from __future__ import annotations
 from html import entities
 from os import get_blocking
+from ssl import HAS_ALPN
 from xml.dom.minicompat import NodeList
 #from types import NoneType
 
-import netdbqual.classify_acc as ca
+import classify_acc as ca
 import re
 from typing import List, Tuple
 from Bio import SeqRecord
@@ -414,6 +415,9 @@ def extractChildren(r, parent, seq_type, db):
     if seq_type=="nucleotide":
         #product_field={'nucleotide':'CDS', 'protein':'Protein'}
         for p in ps.values():
+            if 'gene' in p and 'pseudo' in p['gene'].qualifiers:
+                continue
+
             child=copy.deepcopy(parent)
 
             child['id'], child['name']=extractProduct(p, seq_type)
@@ -472,7 +476,11 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
         e['go']=""
         e['ec']=""
 
-    e['seq']=str(r.seq)
+    
+    try:
+        e['seq']=str(r.seq)
+    except:
+        e['seq']=""
     edges=extractParentEdges(r,db,uniprot_dbsource)
     edges=[(e['id'], edge) for edge in edges]
     return {'n':e, 'e':edges}
