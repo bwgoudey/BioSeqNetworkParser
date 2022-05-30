@@ -160,7 +160,7 @@ def extractProduct(feature_dict, seq_type):
     
     # prod=prod.split("MULTISPECIES: ")[-1]
     # return(prod)
-    if seq_type=="nucleotide":
+    if seq_type=="nucleotide" or seq_type=="contig":
         feat=feature_dict['CDS']
     else:
         feat=feature_dict['Protein']
@@ -412,7 +412,7 @@ def extractChildren(r, parent, seq_type, db):
     nodes=[]
     edges=[]
 
-    if seq_type=="nucleotide":
+    if seq_type=="nucleotide" or seq_type == "contig":
         #product_field={'nucleotide':'CDS', 'protein':'Protein'}
         for p in ps.values():
             if 'gene' in p and 'pseudo' in p['gene'].qualifiers:

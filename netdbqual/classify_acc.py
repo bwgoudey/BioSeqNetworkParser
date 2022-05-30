@@ -56,7 +56,9 @@ def classify_acc(acc):
        ("genbank", "contig"):re.compile("^([A-Z]{4}\\d{8}(\\d+)?)|([A-Z]{6}\\d{9}(\\d+)?)$"),
        ("refseq", "protein"):re.compile("^((AP|NP|XP|YP|ZP)_\\d+)(\\.\\d+)?$"),
        ("refseq.anon", "protein"):re.compile("^((WP)_\\d+)(.\\d+)?$"),
-       ("refseq", "nucleotide"):re.compile("^(((AC|NC|NG|NM|NR|NT|NW|XM|XR)_\\d+)|(NZ\\_[A-Z]{2,4}\\d+))(\\.\\d+)?$"),
+       ("refseq", "nucleotide"):re.compile("^(AC|NC|NM|NR|XM|XR)_\\d+$"),
+       ("refseq", "RNA"):re.compile("^(NM|NR|XM|XR)_\\d+"),
+       ("refseq", "contig"):re.compile("^(((NG|NT|NW|NZ)_\\d+)|(NZ\\_[A-Z]{2,6}\\d+))(\\.\\d+)?$"),
        ("pdb", "protein"):re.compile("^[0-9][A-Za-z0-9]{3}(_([ABCLX]?))?$"),
        ("pir", "protein"):re.compile("^(([A-Z]{2}\\d{4})|([A-OR-TV-Z]{1}\\d{5}))$")  
     }

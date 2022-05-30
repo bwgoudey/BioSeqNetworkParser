@@ -16,7 +16,7 @@ def main():
     Usage: generate_network.py  [-i INPUT] [-f FORMAT]
 
     Options:
-        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/bacteria.187.genomic.gbff.gz]
+        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/bacteria.141.genomic.gbff.gz]
         -f FORMAT   --format FORMAT    [default: gb]
     """
 
@@ -60,6 +60,8 @@ def main():
                     print(j)
 
                 (db,seq_type)=ca.classify_acc(r.id)
+                if seq_type == "unknown":
+                    a=1
                 nodes,edges,key=rec_parser.parseRecord(r, db, seq_type) 
 
                 if edges:

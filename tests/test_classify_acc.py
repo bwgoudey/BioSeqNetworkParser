@@ -71,6 +71,14 @@ class Test_ClassifyAcc(unittest.TestCase):
         self.assertEqual(exp_db, obs_db)
         self.assertEqual(exp_type, obs_type)
 
+    def test_refseq_nuc_assembly(self):
+        acc="NZ_JAGDKW010000001.1"
+        exp_db="refseq"
+        exp_type="contig"
+        obs_db, obs_type=ca.classify_acc(acc)
+        self.assertEqual(exp_db, obs_db)
+        self.assertEqual(exp_type, obs_type)
+
     def test_refseq_prot(self):
         acc="NP_460197"
         exp_db="refseq"
