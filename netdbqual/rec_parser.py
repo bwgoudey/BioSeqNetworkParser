@@ -13,6 +13,8 @@ from datetime import datetime
 from collections import defaultdict
 import copy
 
+from classify_acc import classify_acc
+
 #
 # Taxa
 #
@@ -223,12 +225,6 @@ def extractParentEdges(r, db, uniprot_dbsource=""):
 
     return edge
 
-def extractEdges(r, rec_type, node, db, ):
-    edge=extractParentEdges(r, db)
-    for n in node[1:]:
-        [r.id, ]
-    return edge
-
 
 def extractSeqVersion(r, rec_type: str, seq_type) -> int:
     """Extract the sequence version from a given record. 
@@ -423,7 +419,7 @@ def extractChildren(r, parent, seq_type, db):
                 continue
 
             child=copy.deepcopy(parent)
-
+            child['seq_type']='p'
             child['id'], child['name']=extractProduct(p, seq_type)
             child['go']=extractGO(r, p, db)
             child['ec']=extractEC(r, p['CDS'])
@@ -439,7 +435,7 @@ def extractChildren(r, parent, seq_type, db):
             #     entities=[e_p]
             #     break
             nodes.append(child.values())
-            edges.append((child['id'], parent['id']))
+            edges.append((child['id'], parent['id'],'p', seq_type[0],  'cp'))
     elif len(ps)>1:
         raise
     return {"n":nodes, "e":edges}
@@ -480,14 +476,14 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
     else:
         e['go']=""
         e['ec']=""
-
-    
+    e['seq_type']=seq_type[0]
+    e['db']=db[0]
     try:
         e['seq']=str(r.seq)
     except:
         e['seq']=""
     edges=extractParentEdges(r,db,uniprot_dbsource)
-    edges=[(e['id'], edge) for edge in edges]
+    edges=[(e['id'], edge, seq_type[0], classify_acc(edge)[0][0],  'xref') for edge in edges]
     return {'n':e, 'e':edges}
 
 
@@ -501,8 +497,6 @@ def processUniProtDBsource(dbsource_str):
 
 def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
     id = r.id
-    if "UOI52910.1" in id:
-        a=1
 
     rec_type=determineRecordType(r)
 
@@ -517,10 +511,11 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
     children=extractChildren(r, parent['n'], seq_type, db)
     #edge = extractEdges(r, rec_type, nodes)
     node_strs=[parent['n'].values()]+children['n']
-    edge_strs=parent['e']+children['e']
+    xref_strs=parent['e']
+    parent_child_edges=children['e']
 
     #return ([node], ["\t".join([id, e, seq_type,ca.#classify_acc(e)[1]]) for e in edge])
-    return node_strs, edge_strs, list(parent['n'].keys())
+    return node_strs, xref_strs, parent_child_edges, list(parent['n'].keys())
 
 
 

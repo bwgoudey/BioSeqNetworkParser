@@ -16,7 +16,7 @@ def main():
     Usage: generate_network.py  [-i INPUT] [-f FORMAT]
 
     Options:
-        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/gbbct739.seq.gz]
+        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/bacteria.187.genomic.gbff.gz]
         -f FORMAT   --format FORMAT    [default: gb]
     """
 
@@ -28,7 +28,7 @@ def main():
     f=args['-i']
     fmt=args['-f']
     if fmt not in ['gb', 'swiss']:
-        raise RuntimeError("File format not underestood: '{}'".format(fmt))
+        raise RuntimeError("File format not understood: '{}'".format(fmt))
 
     data_dir = path.dirname(f)##'/Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/'
     #f= data_dir+'uniprot_sprot.dat'
@@ -50,33 +50,40 @@ def main():
     nodes=[]
     edges=[]
     node_filename=gb_file_no_ext+'_node.csv'
-    edge_filename=gb_file_no_ext+'_edge.csv'
-    
+    pc_edge_filename=gb_file_no_ext+'_pc_edge.csv'
+    xref_edge_filename=gb_file_no_ext+'_xref_edge.csv'
+
     with open(node_filename, "w") as node_file:
-        with open(edge_filename, "w") as edge_file:            
-            for j,r in enumerate(gbs_iter):
-                # look at all CDS 
-                if j % 10000 == 0:
-                    print(j)
+        with open(pc_edge_filename, "w") as pc_edge_file:       
+            with open(xref_edge_filename, "w") as xref_edge_file:     
+                for j,r in enumerate(gbs_iter):
+                    # look at all CDS 
+                    if j % 10000 == 0:
+                        print(j)
 
-                (db,seq_type)=ca.classify_acc(r.id)
-                if seq_type == "unknown":
-                    a=1
-                nodes,edges,key=rec_parser.parseRecord(r, db, seq_type) 
+                    (db,seq_type)=ca.classify_acc(r.id)
+                    if seq_type == "unknown":
+                        a=1
+                    nodes,xref_strs, parent_child_edges,key=rec_parser.parseRecord(r, db, seq_type) 
 
-                if edges:
-                    if(j==0):
-                        print("Writing edges to {}".format(edge_filename))
-                        edge_file.write("trg\tsrc\n")
-                    edge_file.write("\n".join(["\t".join(e) for e in edges])+"\n")
-                if nodes:
-                    if(j==0):
-                        print("Writing nodes to {}".format(node_filename))
-                        node_file.write("\t".join(key)+"\n")
-                    node_file.write("\n".join(["\t".join([str(x) for x in n]) for n in nodes])+"\n")
-                #1
-                #if j > 10000:
-                #    break
+                    if xref_strs:
+                        if(j==0):
+                            print("Writing edges to {}".format(xref_edge_filename))
+                            xref_edge_file.write("\t".join(['trg', 'src', 'trg_type', 'src_type','edge_type'])+"\n")#"trg\tsrc\t\n")
+                        xref_edge_file.write("\n".join(["\t".join(e) for e in xref_strs])+"\n")
+                    if parent_child_edges:
+                        if(j==0):
+                            print("Writing edges to {}".format(pc_edge_filename))
+                            pc_edge_file.write("\t".join(['trg', 'src', 'trg_type', 'src_type','edge_type'])+"\n")#"trg\tsrc\t\n")
+                        pc_edge_file.write("\n".join(["\t".join(e) for e in parent_child_edges])+"\n")
+                    if nodes:
+                        if(j==0):
+                            print("Writing nodes to {}".format(node_filename))
+                            node_file.write("\t".join(key)+"\n")
+                        node_file.write("\n".join(["\t".join([str(x) for x in n]) for n in nodes])+"\n")
+                    #1
+                    #if j > 10000:
+                    #    break
 
    
 if __name__ == "__main__":
