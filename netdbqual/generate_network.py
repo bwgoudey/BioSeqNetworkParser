@@ -69,12 +69,12 @@ def main():
                     if xref_strs:
                         if(j==0):
                             print("Writing edges to {}".format(xref_edge_filename))
-                            xref_edge_file.write("\t".join(['trg', 'src', 'trg_type', 'src_type','edge_type'])+"\n")#"trg\tsrc\t\n")
+                            xref_edge_file.write("\t".join(['trg', 'trg_ver' 'src', 'src_ver', 'trg_type', 'src_type','edge_type'])+"\n")#"trg\tsrc\t\n")
                         xref_edge_file.write("\n".join(["\t".join(e) for e in xref_strs])+"\n")
                     if parent_child_edges:
                         if(j==0):
                             print("Writing edges to {}".format(pc_edge_filename))
-                            pc_edge_file.write("\t".join(['trg', 'src', 'trg_type', 'src_type','edge_type'])+"\n")#"trg\tsrc\t\n")
+                            pc_edge_file.write("\t".join(['trg', 'trg_ver' 'src', 'src_ver', 'trg_type', 'src_type','edge_type'])+"\n")#"trg\tsrc\t\n")
                         pc_edge_file.write("\n".join(["\t".join(e) for e in parent_child_edges])+"\n")
                     if nodes:
                         if(j==0):

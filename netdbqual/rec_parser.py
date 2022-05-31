@@ -205,11 +205,10 @@ def extractRefSeqParentEdge(comment_str):
 
 def extractParentEdges(r, db, uniprot_dbsource=""):
     r_annot=r.annotations
-    if db=="refseq":
-        return(extractRefSeqParentEdge(r_annot['comment']))
-    
     edge=[]
-    if uniprot_dbsource and 'xrefs' in uniprot_dbsource:
+    if db=="refseq":
+        edge=extractRefSeqParentEdge(r_annot['comment'])
+    elif uniprot_dbsource and 'xrefs' in uniprot_dbsource:
         edge=uniprot_dbsource['xrefs'].strip().split(', ')
     elif 'db_source' in r_annot:
             # # if r.id[0:3]!="WP_":
@@ -223,7 +222,8 @@ def extractParentEdges(r, db, uniprot_dbsource=""):
     elif hasattr(r, 'dbxrefs'):
             edge=get_dbxrefs(r.dbxrefs)
 
-    return edge
+    
+    return [(e.split(".")+[""])[:2] for e in edge]
 
 
 def extractSeqVersion(r, rec_type: str, seq_type) -> int:
@@ -421,6 +421,11 @@ def extractChildren(r, parent, seq_type, db):
             child=copy.deepcopy(parent)
             child['seq_type']='p'
             child['id'], child['name']=extractProduct(p, seq_type)
+            x=r.id.split(".")
+            child['id']=x[0]
+            if len(x)>1:
+                child['seq_version']=x[1]
+
             child['go']=extractGO(r, p, db)
             child['ec']=extractEC(r, p['CDS'])
             child['n_products']=0
@@ -435,14 +440,15 @@ def extractChildren(r, parent, seq_type, db):
             #     entities=[e_p]
             #     break
             nodes.append(child.values())
-            edges.append((child['id'], parent['id'],'p', seq_type[0],  'cp'))
+            edges.append((child['id'], str(child['seq_version']), parent['id'], 
+                    str(parent['seq_version']), 'p', seq_type[0],  'cp'))
     elif len(ps)>1:
         raise
     return {"n":nodes, "e":edges}
 
 def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
     e={}
-    e['id'] = r.id
+    e['id'] = r.id.split(".")[0]
     e['seq_version']=extractSeqVersion(r, rec_type, seq_type)
 
     modified_info=extractDateModified(r,uniprot_dbsource)
@@ -483,7 +489,7 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
     except:
         e['seq']=""
     edges=extractParentEdges(r,db,uniprot_dbsource)
-    edges=[(e['id'], edge, seq_type[0], classify_acc(edge)[0][0],  'xref') for edge in edges]
+    edges=[(e['id'],str(e['seq_version']), edge[0], edge[1],seq_type[0], classify_acc(edge[0])[0][0],  'xref') for edge in edges]
     return {'n':e, 'e':edges}
 
 
