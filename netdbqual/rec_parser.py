@@ -4,8 +4,7 @@ from os import get_blocking
 from ssl import HAS_ALPN
 from xml.dom.minicompat import NodeList
 #from types import NoneType
-
-import classify_acc as ca
+#import classify_acc as ca
 import re
 from typing import List, Tuple
 from Bio import SeqRecord
@@ -13,7 +12,13 @@ from datetime import datetime
 from collections import defaultdict
 import copy
 
-from classify_acc import classify_acc
+try:
+    from netdbqual.classify_acc import classify_acc 
+except:
+    from classify_acc import classify_acc
+
+
+#from classify_acc import classify_acc
 
 #
 # Taxa
@@ -421,7 +426,7 @@ def extractChildren(r, parent, seq_type, db):
             child=copy.deepcopy(parent)
             child['seq_type']='p'
             child['id'], child['name']=extractProduct(p, seq_type)
-            x=r.id.split(".")
+            x=child['id'].split(".")
             child['id']=x[0]
             if len(x)>1:
                 child['seq_version']=x[1]
@@ -439,7 +444,7 @@ def extractChildren(r, parent, seq_type, db):
             #     echild_p['parent']=[r.id]
             #     entities=[e_p]
             #     break
-            nodes.append(child.values())
+            nodes.append(child)
             edges.append((child['id'], str(child['seq_version']), parent['id'], 
                     str(parent['seq_version']), 'p', seq_type[0],  'cp'))
     elif len(ps)>1:
@@ -516,7 +521,7 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
     parent=createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource)
     children=extractChildren(r, parent['n'], seq_type, db)
     #edge = extractEdges(r, rec_type, nodes)
-    node_strs=[parent['n'].values()]+children['n']
+    node_strs=[parent['n']]+children['n']
     xref_strs=parent['e']
     parent_child_edges=children['e']
 

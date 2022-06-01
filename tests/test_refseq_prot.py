@@ -1,7 +1,7 @@
 from sqlite3 import dbapi2
 import unittest   # The test framework
 from importlib import reload  # Python 3.4+
-from netdbqual import parser
+from netdbqual import rec_parser
 from Bio import SeqIO
 from io import StringIO
 
@@ -203,33 +203,33 @@ ORIGIN
          # What sort of record? Its a protein, described at top-level 
     # (i.e whole record is about this protein))
     def test_determineRecordType(self):
-        obs_rec_type=parser.determineRecordType(self.rec)
+        obs_rec_type=rec_parser.determineRecordType(self.rec)
         exp_rec_type="top"
         self.assertEqual(obs_rec_type, exp_rec_type)        
 
 
     # Is it a real protein? Discard Psuedo proteins
     def test_is_pseudo(self):
-        obs_pseudo=parser.isPseudo(self.rec, self.rec_type, self.seq_type)
+        obs_pseudo=rec_parser.isPseudo(self.rec, self.rec_type, self.seq_type)
         exp_pseudo=False
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
 
     # What organism are we looking at
     def test_extractOrganism(self):
-        obs_pseudo=parser.extractOrganism(self.rec.annotations)
+        obs_pseudo=rec_parser.extractOrganism(self.rec.annotations)
         exp_pseudo="Escherichia coli str. K-12 substr. MG1655"
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     # What are the 4 highest levels of taxa. Might help with plotting. 
     def test_extractTaxonomy(self):
-        obs_pseudo=parser.extractTaxonomy(self.rec.annotations)
+        obs_pseudo=rec_parser.extractTaxonomy(self.rec.annotations)
         exp_pseudo='Bacteria,Proteobacteria,Gammaproteobacteria,Enterobacterales,Enterobacteriaceae,Escherichia' 
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     #Figure out when thi was first submitted
     def test_extractDateModified(self):
-        obs=parser.extractDateModified(self.rec, "")
+        obs=rec_parser.extractDateModified(self.rec, "")
         exp_upload=19970116
         exp_last_mod=20220308
         exp_nmodify=11
@@ -239,34 +239,34 @@ ORIGIN
 
 
     def test_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec.annotations)
+        obs_date=rec_parser.extractDateLastModified(self.rec.annotations)
         exp_date=20220309
         self.assertEqual(obs_date, exp_date)  
 
   
     def test_extractGo(self):
         prot1={f.type:f for f in (self.rec.features[1],self.rec.features[4])}
-        obs_go=parser.extractGO(self.rec, prot1, self.db)
-        #obs_go=parser.extractGO(self.rec, self.rec_prot_rec_type)
+        obs_go=rec_parser.extractGO(self.rec, prot1, self.db)
+        #obs_go=rec_parser.extractGO(self.rec, self.rec_prot_rec_type)
         exp_go=[]
         self.assertEqual(obs_go, exp_go)  
 
     def test_extracEC(self):
         r=self.rec
         prot1={f.type:f for f in (r.features[1],r.features[4])}
-        obs_ec=parser.extractEC(r, prot1['Protein'])
-        #obs_ec=parser.extractEC(self.rec, self.rec_prot_rec_type)
+        obs_ec=rec_parser.extractEC(r, prot1['Protein'])
+        #obs_ec=rec_parser.extractEC(self.rec, self.rec_prot_rec_type)
         exp_ec="3.4.11.4"
         self.assertEqual(obs_ec, exp_ec)  
 
     def test_extractTaxaID(self):
-        obs_taxid=parser.extractTaxaID(self.rec.features[0])
+        obs_taxid=rec_parser.extractTaxaID(self.rec.features[0])
         exp_taxid="511145"
         self.assertEqual(obs_taxid, exp_taxid)
 
     def test_extractParentEdges(self):
         r_annots=self.rec
-        obs_edges=parser.extractParentEdges(r_annots,self.db)
+        obs_edges=rec_parser.extractParentEdges(r_annots,self.db)
         exp_edges=['AAC74211'] 
         self.assertEqual(obs_edges, exp_edges)        
 
@@ -276,7 +276,7 @@ ORIGIN
             rec_type=self.rec_type
             seq_type=self.seq_type
             db=self.db
-            obs=parser.createTopLevelNode(r, rec_type, seq_type, db)
+            obs=rec_parser.createTopLevelNode(r, rec_type, seq_type, db)
             obs['n']['seq']=obs['n']['seq'][0:10]
             
             exp_node={'id': 'NP_415645.1', 

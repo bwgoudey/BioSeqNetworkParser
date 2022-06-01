@@ -1,7 +1,7 @@
 from sqlite3 import dbapi2
 import unittest   # The test framework
 from importlib import reload  # Python 3.4+
-from netdbqual import parser
+from netdbqual import rec_parser
 from Bio import SeqIO
 from io import StringIO
 
@@ -192,33 +192,33 @@ ORIGIN
          # What sort of record? Its a protein, described at top-level 
     # (i.e whole record is about this protein))
     def test_determineRecordType(self):
-        obs_rec_type=parser.determineRecordType(self.rec)
+        obs_rec_type=rec_parser.determineRecordType(self.rec)
         exp_rec_type="top"
         self.assertEqual(obs_rec_type, exp_rec_type)        
 
 
     # Is it a real protein? Discard Psuedo proteins
     def test_is_pseudo(self):
-        obs_pseudo=parser.isPseudo(self.rec, self.rec_type, self.seq_type)
+        obs_pseudo=rec_parser.isPseudo(self.rec, self.rec_type, self.seq_type)
         exp_pseudo=False
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
 
     # What organism are we looking at
     def test_extractOrganism(self):
-        obs_pseudo=parser.extractOrganism(self.rec.annotations)
+        obs_pseudo=rec_parser.extractOrganism(self.rec.annotations)
         exp_pseudo="Frog virus 3"
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     # What are the 4 highest levels of taxa. Might help with plotting. 
     def test_extractTaxonomy(self):
-        obs_pseudo=parser.extractTaxonomy(self.rec.annotations)
+        obs_pseudo=rec_parser.extractTaxonomy(self.rec.annotations)
         exp_pseudo='Viruses,Varidnaviria,Bamfordvirae,Nucleocytoviricota,Megaviricetes,Pimascovirales' 
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     #Figure out when thi was first submitted
     def test_extractDateModified(self):
-        obs=parser.extractDateModified(self.rec, "")
+        obs=rec_parser.extractDateModified(self.rec, "")
         exp_upload=20040218#18-FEB-2004
         exp_last_mod=20040818#18-AUG-2004
         exp_nmodify=2
@@ -228,43 +228,43 @@ ORIGIN
 
 
     def test_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec.annotations)
+        obs_date=rec_parser.extractDateLastModified(self.rec.annotations)
         exp_date=20201220
         self.assertEqual(obs_date, exp_date)  
     
     def test_extractGo(self):
         r=self.rec
         prot1={f.type:f for f in (r.features[1],r.features[2])}
-        obs_go=parser.extractGO(r, prot1, self.db)
+        obs_go=rec_parser.extractGO(r, prot1, self.db)
 
         exp_go=[]
         self.assertEqual(obs_go, exp_go)  
 
     def test_extractEC(self):
-        obs_ec=parser.extractEC(self.rec, self.rec.features[1])
+        obs_ec=rec_parser.extractEC(self.rec, self.rec.features[1])
         exp_ec=""
         self.assertEqual(obs_ec, exp_ec)  
 
     def test_extractTaxaID(self):
-        obs_taxid=parser.extractTaxaID(self.rec.features[0])
+        obs_taxid=rec_parser.extractTaxaID(self.rec.features[0])
         exp_taxid="10493"
         self.assertEqual(obs_taxid, exp_taxid)
 
     def test_extractParentEdges(self):
         r=self.rec        
-        obs_edges=parser.extractParentEdges(r, self.db)
-        exp_edges=['AY548484'] 
+        obs_edges=rec_parser.extractParentEdges(r, self.db)
+        exp_edges=[['AY548484',""]]
         self.assertEqual(obs_edges, exp_edges)   
 
     # def test_extractEdges(self):
     #     r=self.rec
     #     fd={f.type:f for f in (r.features[1],r.features[2])}
-    #     obs_edges=parser.extractRelatedEdges(fd)
+    #     obs_edges=rec_parser.extractRelatedEdges(fd)
     #     exp_edges={"YP_031579.1":[]}
     #     self.assertEqual(obs_edges, exp_edges)    
 
     def test_identifyProteins(self):
-        obs_prots=parser.identifyProteins(self.rec)
+        obs_prots=rec_parser.identifyProteins(self.rec)
         obs_nprots=len(obs_prots)
         exp_nprots=3
         self.assertEqual(obs_nprots, exp_nprots)
@@ -274,10 +274,10 @@ ORIGIN
         rec_type=self.rec_type
         seq_type=self.seq_type
         db=self.db
-        obs=parser.createTopLevelNode(r, rec_type, seq_type, db)
+        obs=rec_parser.createTopLevelNode(r, rec_type, seq_type, db)
         obs['n']['seq']=obs['n']['seq'][0:10]
         
-        exp_node={'id': 'NC_005946.1', 
+        exp_node={'id': 'NC_005946', 
         'seq_version': 1, 
         'date_first_upload': 20040218, 
         'num_modified': 2, 
@@ -289,11 +289,14 @@ ORIGIN
         'name': 'Frog virus 3, complete genome', 
         'go': '', 
         'ec': '', 
-        'seq': "AAGCTTTAAC"
+        'seq': "AAGCTTTAAC",
+        'db': 'r',
+        'seq_type': 'n',
+
         #'parent': ['AY548484']
         }
         self.assertEqual(obs['n'], exp_node)
-        self.assertEqual(obs['e'],[('NC_005946.1', 'AY548484')])
+        self.assertEqual(obs['e'],[('NC_005946', '1', 'AY548484', '', 'n', 'g', 'xref')])
 
 
 
@@ -302,12 +305,12 @@ ORIGIN
         rec_type=self.rec_type
         seq_type=self.seq_type
         db=self.db
-        parent=parser.createTopLevelNode(r, rec_type, seq_type, db)
-        obs=parser.extractChildren(r, parent['n'], seq_type, db)
+        parent=rec_parser.createTopLevelNode(r, rec_type, seq_type, db)
+        obs=rec_parser.extractChildren(r, parent['n'], seq_type, db)
         
         #NAmes
         obs_ids=[p['id'] for p in obs['n']]
-        exp_ids=['YP_031579.1', 'YP_031580.1', 'YP_031581.1']
+        exp_ids=['YP_031579', 'YP_031580', 'YP_031581']
         self.assertEqual(obs_ids, exp_ids)
 
         obs_names=[p['name'] for p in obs['n']]
@@ -327,9 +330,9 @@ ORIGIN
         #self.assertEqual(obs_ec, exp_ec)
 
         obs_edges=obs['e']
-        exp_edges=[('YP_031579.1', 'NC_005946.1'), 
-        ('YP_031580.1', 'NC_005946.1'), 
-        ('YP_031581.1', 'NC_005946.1')]
+        exp_edges=[('YP_031579', '1', 'NC_005946', '1', 'p', 'n', 'cp'),
+                    ('YP_031580', '1', 'NC_005946', '1', 'p', 'n', 'cp'),
+                    ('YP_031581', '1', 'NC_005946', '1', 'p', 'n', 'cp')]
         self.assertEqual(obs_edges, exp_edges)
 
 
@@ -338,15 +341,16 @@ ORIGIN
         r=self.rec  
         seq_type=self.seq_type
         db=self.db
-        obs_node, obs_edge=parser.parseRecord(r, db, seq_type)
-        exp_edge=[('NC_005946.1', 'AY548484'), 
-        ('YP_031579.1', 'NC_005946.1'), 
-        ('YP_031580.1', 'NC_005946.1'), 
-        ('YP_031581.1', 'NC_005946.1')]
+        obs_nodes,obs_xref_strs, obs_parent_child_edges,obs_key=rec_parser.parseRecord(r, db, seq_type)
+        exp_xref_edge=[('NC_005946', '1', 'AY548484', '', 'n', 'g', 'xref')]
+        exp_pc_edge=[
+            ('YP_031579', '1', 'NC_005946', '1', 'p', 'n', 'cp'),
+            ('YP_031580', '1', 'NC_005946', '1', 'p', 'n', 'cp'),
+            ('YP_031581', '1', 'NC_005946', '1', 'p', 'n', 'cp')]       
         exp_nodes=4
-        self.assertEqual(len(obs_node), exp_nodes)
-        self.assertEqual(obs_edge, exp_edge)
-
+        self.assertEqual(len(obs_nodes), exp_nodes)
+        self.assertEqual(obs_xref_strs, exp_xref_edge)
+        self.assertEqual(obs_parent_child_edges, exp_pc_edge)
 
 
 

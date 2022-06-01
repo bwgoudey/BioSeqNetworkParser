@@ -1,7 +1,7 @@
 from sqlite3 import dbapi2
 import unittest   # The test framework
 from importlib import reload  # Python 3.4+
-from netdbqual import parser
+from netdbqual import rec_parser
 from Bio import SeqIO
 from io import StringIO
 
@@ -68,42 +68,42 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
          # What sort of record? Its a protein, described at top-level 
     # (i.e whole record is about this protein))
     def test_determineRecordType(self):
-        obs_rec_type=parser.determineRecordType(self.rec)
+        obs_rec_type=rec_parser.determineRecordType(self.rec)
         exp_rec_type="top"
         self.assertEqual(obs_rec_type, exp_rec_type)        
 
 
     # Is it a real protein? Discard Psuedo proteins
     def test_is_pseudo(self):
-        obs_pseudo=parser.isPseudo(self.rec, self.rec_type, self.seq_type)
+        obs_pseudo=rec_parser.isPseudo(self.rec, self.rec_type, self.seq_type)
         exp_pseudo=False
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     def test_extractName(self):
-        obs_name=parser.extractDescription(self.rec.description)
+        obs_name=rec_parser.extractDescription(self.rec.description)
         exp_name='Putative transcription factor 001R'
         self.assertEqual(obs_name, exp_name)
 
     # What organism are we looking at
     def test_extractOrganism(self):
-        obs_pseudo=parser.extractOrganism(self.rec.annotations)
+        obs_pseudo=rec_parser.extractOrganism(self.rec.annotations)
         exp_pseudo="Frog virus 3 (isolate Goorha) (FV-3)"
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     def test_extractTaxaID(self):
-        obs_taxid=parser.extractTaxaID(self.rec.features[0], self.rec.annotations)
+        obs_taxid=rec_parser.extractTaxaID(self.rec.features[0], self.rec.annotations)
         exp_taxid="654924"
         self.assertEqual(obs_taxid, exp_taxid)
 
     # What are the 4 highest levels of taxa. Might help with plotting. 
     def test_extractTaxonomy(self):
-        obs_pseudo=parser.extractTaxonomy(self.rec.annotations)
+        obs_pseudo=rec_parser.extractTaxonomy(self.rec.annotations)
         exp_pseudo='Viruses,Varidnaviria,Bamfordvirae,Nucleocytoviricota,Megaviricetes,Pimascovirales' 
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     #Figure out when thi was first submitted
     def test_extractDateModified(self):
-        obs=parser.extractDateModified(self.rec, "")
+        obs=rec_parser.extractDateModified(self.rec, "")
         exp_upload=20210602
         exp_last_mod=20210602
         exp_nmodify=-1
@@ -113,26 +113,26 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
 
     def test_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec.annotations)
+        obs_date=rec_parser.extractDateLastModified(self.rec.annotations)
         exp_date=20210602
         self.assertEqual(obs_date, exp_date)  
 
   
     def test_extractGo(self):
         prot1=""#{f.type:f for f in (r.features[1],r.features[4])}
-        obs_go=parser.extractGO(self.rec, prot1, self.db)
-        #obs_go=parser.extractGO(self.rec, self.rec_type)
+        obs_go=rec_parser.extractGO(self.rec, prot1, self.db)
+        #obs_go=rec_parser.extractGO(self.rec, self.rec_type)
         exp_go=["GO:0046782"]
         self.assertEqual(obs_go, exp_go)  
 
     def test_extractEC(self):
-        obs_ec=parser.extractEC(self.rec, "")
+        obs_ec=rec_parser.extractEC(self.rec, "")
         exp_ec=['2.3.1.122', '2.3.1.20']
         self.assertEqual(obs_ec, exp_ec)  
 
-    #There are some limitations to the current UNiProt parser. In particular, it seems to only capture a subset of accesssions. 
+    #There are some limitations to the current UNiProt rec_parser. In particular, it seems to only capture a subset of accesssions. 
     def test_extractParentEdges(self):
-        obs_edges=parser.extractParentEdges(self.rec,self.db, "")
+        obs_edges=rec_parser.extractParentEdges(self.rec,self.db, "")
         #exp_edges=["AY548484.1", "AAT09660.1", "YP_031579.1", "NC_005946.1"]
         exp_edges=sorted(["AY548484",  "YP_031579.1"])
         self.assertEqual(sorted(obs_edges), exp_edges)        
@@ -140,7 +140,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
     def test_createTopLevelNode(self):
             
-            obs=parser.createTopLevelNode(self.rec, self.rec_type, self.seq_type, self.db,self.dbsource_str)
+            obs=rec_parser.createTopLevelNode(self.rec, self.rec_type, self.seq_type, self.db,self.dbsource_str)
             obs['n']['seq']=obs['n']['seq'][0:10]
             
             exp_node={'id': 'Q6GZX4', 
@@ -164,7 +164,7 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
 
     def test_uniprot_parseRecord(self):
-        obs_node, obs_edge=parser.parseRecord(self.rec, self.db, self.seq_type)
+        obs_node, obs_edge=rec_parser.parseRecord(self.rec, self.db, self.seq_type)
         exp_edge=[('Q6GZX4', 'AY548484'), ('Q6GZX4', 'YP_031579.1')]
         exp_nodes=1
         self.assertEqual(len(obs_node), exp_nodes)

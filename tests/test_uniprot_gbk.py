@@ -1,7 +1,7 @@
 from sqlite3 import dbapi2
 import unittest   # The test framework
 from importlib import reload  # Python 3.4+
-from netdbqual import parser
+from netdbqual import rec_parser
 from Bio import SeqIO
 from io import StringIO
 
@@ -123,7 +123,7 @@ ORIGIN
         self.db='uniprot'
         self.seq_type="protein"
         self.rec_type="top"
-        self.dbsource_str=parser.processUniProtDBsource(self.rec.annotations['db_source'])
+        self.dbsource_str=rec_parser.processUniProtDBsource(self.rec.annotations['db_source'])
 
 
       
@@ -131,34 +131,34 @@ ORIGIN
          # What sort of record? Its a protein, described at top-level 
     # (i.e whole record is about this protein))
     def test_determineRecordType(self):
-        obs_rec_type=parser.determineRecordType(self.rec)
+        obs_rec_type=rec_parser.determineRecordType(self.rec)
         exp_rec_type="top"
         self.assertEqual(obs_rec_type, exp_rec_type)        
 
 
     # Is it a real protein? Discard Psuedo proteins
     def test_is_pseudo(self):
-        obs_pseudo=parser.isPseudo(self.rec, self.rec_type, self.seq_type)
+        obs_pseudo=rec_parser.isPseudo(self.rec, self.rec_type, self.seq_type)
         exp_pseudo=False
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
 
     # What organism are we looking at
     def test_extractOrganism(self):
-        obs_pseudo=parser.extractOrganism(self.rec.annotations)
+        obs_pseudo=rec_parser.extractOrganism(self.rec.annotations)
         exp_pseudo="Listeria welshimeri serovar 6b str. SLCC5334"
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     # What are the 4 highest levels of taxa. Might help with plotting. 
     def test_extractTaxonomy(self):
-        obs_pseudo=parser.extractTaxonomy(self.rec.annotations)
+        obs_pseudo=rec_parser.extractTaxonomy(self.rec.annotations)
         exp_pseudo='Bacteria,Firmicutes,Bacilli,Bacillales,Listeriaceae,Listeria' 
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     #Figure out when thi was first submitted
     def test_extractDateModified(self):
-        db_str=parser.processUniProtDBsource(self.rec.annotations['db_source'])
-        obs=parser.extractDateModified(self.rec, db_str)
+        db_str=rec_parser.processUniProtDBsource(self.rec.annotations['db_source'])
+        obs=rec_parser.extractDateModified(self.rec, db_str)
         exp_upload=20080115
         exp_last_mod=20220223
         exp_nmodify=-1
@@ -168,7 +168,7 @@ ORIGIN
 
 
     def test_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec.annotations)
+        obs_date=rec_parser.extractDateLastModified(self.rec.annotations)
         exp_date=20220223
         self.assertEqual(obs_date, exp_date)  
 
@@ -176,8 +176,8 @@ ORIGIN
     def test_extractGo(self):
         r=self.rec
         prot1={f.type:f for f in (r.features[1],r.features[4])}
-        obs_go=parser.extractGO(self.rec, prot1, self.db)
-        #obs_go=parser.extractGO(self.rec, self.rec_type)
+        obs_go=rec_parser.extractGO(self.rec, prot1, self.db)
+        #obs_go=rec_parser.extractGO(self.rec, self.rec_type)
         exp_go=['GO:0005737', 'GO:0008237', 'GO:0008270', 'GO:0043171', 'GO:0045148']
         self.assertEqual(obs_go, exp_go)  
 
@@ -185,20 +185,20 @@ ORIGIN
         r=self.rec
         prot1={f.type:f for f in (r.features[2],r.features[4])}
         
-        obs_ec=parser.extractEC(r, prot1['Protein'])
-        #obs_ec=parser.extractEC(self.rec, self.rec_type)
+        obs_ec=rec_parser.extractEC(r, prot1['Protein'])
+        #obs_ec=rec_parser.extractEC(self.rec, self.rec_type)
         exp_ec="3.4.11.4"
         self.assertEqual(obs_ec, exp_ec)  
 
     def test_extractTaxaID(self):
-        obs_taxid=parser.extractTaxaID(self.rec.features[0])
+        obs_taxid=rec_parser.extractTaxaID(self.rec.features[0])
         exp_taxid="386043"
         self.assertEqual(obs_taxid, exp_taxid)
 
     def test_extractParentEdges(self):
-        db_str=parser.processUniProtDBsource(self.rec.annotations['db_source'])
+        db_str=rec_parser.processUniProtDBsource(self.rec.annotations['db_source'])
         r=self.rec
-        obs_edges=parser.extractParentEdges(r,self.db, db_str)
+        obs_edges=rec_parser.extractParentEdges(r,self.db, db_str)
         exp_edges=['AM263198.1', 'CAK21216.1', 'WP_011702575.1']
         self.assertEqual(obs_edges, exp_edges)        
 
@@ -209,7 +209,7 @@ ORIGIN
             seq_type=self.seq_type
             db=self.db
             dbsrc_str=self.dbsource_str
-            obs=parser.createTopLevelNode(r, rec_type, seq_type, db,dbsrc_str)
+            obs=rec_parser.createTopLevelNode(r, rec_type, seq_type, db,dbsrc_str)
             obs['n']['seq']=obs['n']['seq'][0:10]
             
             exp_node={'id': 'A0AJN4.1',
@@ -240,7 +240,7 @@ ORIGIN
 
     def test_uniprotDateStrToNum(self):
         date_str='Jan 15, 2008'
-        obs=parser.uniprotDateStrToNum(date_str)
+        obs=rec_parser.uniprotDateStrToNum(date_str)
         exp=20080115
         self.assertEqual(obs, exp)
 
@@ -248,7 +248,7 @@ ORIGIN
         r=self.rec  
         db=self.db
         seq_type=self.seq_type
-        obs_node, obs_edge=parser.parseRecord(r, db, seq_type)
+        obs_node, obs_edge=rec_parser.parseRecord(r, db, seq_type)
         exp_edge=[('A0AJN4.1', 'AM263198.1'), ('A0AJN4.1', 'CAK21216.1'), ('A0AJN4.1', 'WP_011702575.1')]
         exp_nodes=1
         self.assertEqual(len(obs_node), exp_nodes)

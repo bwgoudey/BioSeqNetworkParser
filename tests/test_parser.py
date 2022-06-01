@@ -1,7 +1,8 @@
+
 from sqlite3 import dbapi2
 import unittest   # The test framework
 from importlib import reload  # Python 3.4+
-from netdbqual import parser
+from netdbqual import rec_parser
 from Bio import SeqIO
 from io import StringIO
 
@@ -112,23 +113,23 @@ ORIGIN
 
     # Is it a real protein? Discard Psuedo proteins
     def test_is_pseudo(self):
-        obs_pseudo=parser.isPseudo(self.rec, self.rec_type, self.seq_type)
+        obs_pseudo=rec_parser.isPseudo(self.rec, self.rec_type, self.seq_type)
         exp_pseudo=False
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
 
     # What organism are we looking at
     def test_extractOrganism(self):
-        obs_pseudo=parser.extractOrganism(self.rec.annotations)
+        obs_pseudo=rec_parser.extractOrganism(self.rec.annotations)
         exp_pseudo="Staphylococcus epidermidis"
         self.assertEqual(obs_pseudo, exp_pseudo)  
 
     # What are the 4 highest levels of taxa. Might help with plotting. 
     def test_extractTaxonomy(self):
-        obs_pseudo=parser.extractTaxonomy(self.rec.annotations)
+        obs_pseudo=rec_parser.extractTaxonomy(self.rec.annotations)
         exp_pseudo='Bacteria,Firmicutes,Bacilli,Bacillales,Staphylococcaceae,Staphylococcus'
         
-        obs_pseudo_short=parser.extractTaxonomy({'taxonomy':['Bacteria', 'Firmicutes', 'Bacilli']})
+        obs_pseudo_short=rec_parser.extractTaxonomy({'taxonomy':['Bacteria', 'Firmicutes', 'Bacilli']})
         exp_pseudo_short='Bacteria,Firmicutes,Bacilli,,,'
         
         self.assertEqual(obs_pseudo, exp_pseudo)  
@@ -136,7 +137,7 @@ ORIGIN
 
     #Figure out when thi was first submitted
     def test_extractDateModified(self):
-        obs=parser.extractDateModified(self.rec, "")
+        obs=rec_parser.extractDateModified(self.rec, "")
         exp_upload=20220331
         exp_last_mod=20220331
         exp_nmodify=1
@@ -146,7 +147,7 @@ ORIGIN
 
 
     def test_extractDateLastModified(self):
-        obs_date=parser.extractDateLastModified(self.rec.annotations)
+        obs_date=rec_parser.extractDateLastModified(self.rec.annotations)
         exp_date=20220407
         self.assertEqual(obs_date, exp_date)  
 
@@ -154,29 +155,29 @@ ORIGIN
        
         r=self.rec
         prot1={f.type:f for f in (r.features[1],r.features[2])}
-        obs_go=parser.extractGO(self.rec, prot1, self.db)
+        obs_go=rec_parser.extractGO(self.rec, prot1, self.db)
         exp_go=sorted(['GO:0006508', 'GO:0045148'])
         self.assertEqual(obs_go, exp_go)  
 
     def test_extractEC(self):
         r=self.rec
         prot1={f.type:f for f in (r.features[1],r.features[2])}
-        obs_ec=parser.extractEC(r, prot1['Protein'])
+        obs_ec=rec_parser.extractEC(r, prot1['Protein'])
         exp_ec="3.4.11.4"
         self.assertEqual(obs_ec, exp_ec)  
 
     def test_extractTaxaID(self):
-        obs_taxid=parser.extractTaxaID(self.rec.features[0])
+        obs_taxid=rec_parser.extractTaxaID(self.rec.features[0])
         exp_taxid="1282"
         self.assertEqual(obs_taxid, exp_taxid)
 
     def test_extractParentEdges(self):
-        obs_edges=parser.extractParentEdges(self.rec, self.db)
-        exp_edges=['CP094865.1']
+        obs_edges=rec_parser.extractParentEdges(self.rec, self.db)
+        exp_edges=[['CP094865', '1']]
         self.assertEqual(obs_edges, exp_edges)
 
     # def test_extractEdges(self):
-    #     obs_edges=parser.extractEdges(self.rec, self.db)
+    #     obs_edges=rec_parser.extractEdges(self.rec, self.db)
     #     exp_edges=[(self.rec.id, 'CP094865.1')]
     #     self.assertEqual(obs_edges, exp_edges)
 
@@ -185,10 +186,10 @@ ORIGIN
         rec_type=self.rec_type
         seq_type=self.seq_type
         db=self.db
-        obs=parser.createTopLevelNode(r, rec_type, seq_type, db)
+        obs=rec_parser.createTopLevelNode(r, rec_type, seq_type, db)
         obs['n']['seq']=obs['n']['seq'][0:10]
         
-        exp_node={'id': 'UOH70005.1', 
+        exp_node={'id': 'UOH70005', 
         'seq_version': 1, 
         'date_first_upload': 20220331, 
         'num_modified': 1, 
@@ -200,10 +201,12 @@ ORIGIN
         'name': 'peptidase T', 
         'go': ['GO:0006508', 'GO:0045148'], 
         'ec': '3.4.11.4', 
-        'seq': 'MKKQIIERLT'
+        'seq': 'MKKQIIERLT',
         #'parent': ['CP094865.1']
+        'db': 'g',
+        'seq_type': 'p'
         }
 
         self.assertEqual(obs['n'], exp_node)
-        self.assertEqual(obs['e'], [('UOH70005.1', 'CP094865.1')])
+        self.assertEqual(obs['e'], [('UOH70005', '1', 'CP094865', '1', 'p', 'g', 'xref')])
 

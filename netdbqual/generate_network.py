@@ -65,6 +65,9 @@ def main():
                     if seq_type == "unknown":
                         a=1
                     nodes,xref_strs, parent_child_edges,key=rec_parser.parseRecord(r, db, seq_type) 
+                    node_ids=[n['id'] for n in nodes if n['id'][0:3]!='WP_']
+                    if len(set(node_ids))!=len(list(node_ids)):
+                        raise RuntimeError("Duplicate identifiers for multiple entities")
 
                     if xref_strs:
                         if(j==0):
@@ -80,7 +83,7 @@ def main():
                         if(j==0):
                             print("Writing nodes to {}".format(node_filename))
                             node_file.write("\t".join(key)+"\n")
-                        node_file.write("\n".join(["\t".join([str(x) for x in n]) for n in nodes])+"\n")
+                        node_file.write("\n".join(["\t".join([str(x) for x in n.values()]) for n in nodes])+"\n")
                     #1
                     #if j > 10000:
                     #    break
