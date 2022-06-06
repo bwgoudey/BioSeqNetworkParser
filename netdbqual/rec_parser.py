@@ -46,13 +46,14 @@ def extractTaxonomy(r_annots, n_level=6):
 
 def extractTaxaID(source_feat, r_annot={}):
     if 'ncbi_taxid' in r_annot: 
-        return r_annot['ncbi_taxid'][0]
+        tax_id=r_annot['ncbi_taxid'][0]
+        return(tax_id.split(" {")[0])
     #taxid={f.type:f for f in r.features}['source'].f.
     if source_feat.type!="source":
         raise
     if 'db_xref' in source_feat.qualifiers:
         return source_feat.qualifiers['db_xref'][0].split(":")[1]
-        return ""
+    return ""
 
 
 #
@@ -143,6 +144,7 @@ def extractDescription(r_desc):
     desc=""
     if r_desc[0:7] == "RecName":
         desc = r_desc.split(";")[0].split("=")[-1]
+        desc=desc.split(" {")[0]
     else:
         desc = r_desc.split(' [')[0]       
     
@@ -366,10 +368,13 @@ def extractUniprotGo(dbsource) -> str:
 
 def extractGO(r, p, db):
     if db=="uniprot":
-        if hasattr(r, 'ncbi_taxid'):
-            return [x[3:] for x in r.dbxrefs if x[0:3]=='GO:']
-        elif 'db_source' in r.annotations:
-            return extractUniprotGo(r.annotations['db_source'])
+        if hasattr(r, 'dbxrefs'):
+            gos=[x[3:] for x in r.dbxrefs if x[0:3]=='GO:']
+        
+        if not gos and 'db_source' in r.annotations:
+            gos=extractUniprotGo(r.annotations['db_source'])
+        if gos:
+            return gos        
         else:
             return []   
     return extractNcbiGO(p)
@@ -390,10 +395,10 @@ def extractEC(r, product) -> str:
     if uniprot_format: 
         desc=r.description
         tokens= desc.split("; ")
-        ECs=[l[3:].rstrip(";") for l in tokens if l[0:3]=="EC="]
+        ECs=[l[3:].rstrip(";").split(" {")[0] for l in tokens if l[0:3]=="EC="]
         if not ECs:
             return ""
-        return ECs
+        return (','.join(ECs))
 
 
     return ""

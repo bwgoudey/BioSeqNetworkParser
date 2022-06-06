@@ -127,14 +127,14 @@ SQ   SEQUENCE   256 AA;  29735 MW;  B4840739BF7D4121 CRC64;
 
     def test_extractEC(self):
         obs_ec=rec_parser.extractEC(self.rec, "")
-        exp_ec=['2.3.1.122', '2.3.1.20']
+        exp_ec='2.3.1.122,2.3.1.20'
         self.assertEqual(obs_ec, exp_ec)  
 
     #There are some limitations to the current UNiProt rec_parser. In particular, it seems to only capture a subset of accesssions. 
     def test_extractParentEdges(self):
         obs_edges=rec_parser.extractParentEdges(self.rec,self.db, "")
         #exp_edges=["AY548484.1", "AAT09660.1", "YP_031579.1", "NC_005946.1"]
-        exp_edges=sorted(["AY548484",  "YP_031579.1"])
+        exp_edges=[['AY548484', ''], ['YP_031579', '1']]
         self.assertEqual(sorted(obs_edges), exp_edges)        
 
 
