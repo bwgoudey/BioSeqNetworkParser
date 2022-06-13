@@ -176,6 +176,11 @@ ORIGIN
         exp_edges=[['CP094865', '1']]
         self.assertEqual(obs_edges, exp_edges)
 
+    def test_extractInferenceEdges(self):
+        obs_edges=rec_parser.extractInferenceEdges(self.rec, self.db)
+        exp_edges=[['CP094865', 1, "g", 'WP_002468678', 1, "r", "Protein Homology"]]
+        self.assertEqual(obs_edges, exp_edges)
+
     # def test_extractEdges(self):
     #     obs_edges=rec_parser.extractEdges(self.rec, self.db)
     #     exp_edges=[(self.rec.id, 'CP094865.1')]
