@@ -593,12 +593,14 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
     parent=createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource)
     children=extractChildren(r, parent['n'], seq_type, db)
     #edge = extractEdges(r, rec_type, nodes)
-    node_strs=[parent['n']]+children['n']
-    xref_strs=parent['e']
-    parent_child_edges=children['e']
-    ec_edges=parent['ec']+children['ec']
-    #return ([node], ["\t".join([id, e, seq_type,ca.#classify_acc(e)[1]]) for e in edge])
-    return node_strs, xref_strs, parent_child_edges, list(parent['n'].keys()), ec_edges
+    g = {}
+    g['node_strs']=[parent['n']]+children['n']
+    g['xref_strs']=parent['e']
+    g['parent_child_edges']=children['e']
+    g['ec_edges']=parent['ec']+children['ec']
+    g['key']=list(parent['n'].keys())
+    return(g)
+    #return node_strs, xref_strs, parent_child_edges, list(parent['n'].keys()), ec_edges
 
 
 

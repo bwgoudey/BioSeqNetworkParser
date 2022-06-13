@@ -10,14 +10,16 @@ import rec_parser as rec_parser
 from importlib import reload  # Python 3.4+
 from docopt import docopt
 
+
+#-i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/uniprot_sprot.dat.bgz]
 def main():
     doc =  """generate_network
 
     Usage: generate_network.py  [-i INPUT] [-f FORMAT]
 
     Options:
-        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/uniprot_sprot.dat.bgz]
-        -f FORMAT   --format FORMAT    [default: swiss]
+        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/gbbct245.seq.gz]
+        -f FORMAT   --format FORMAT    [default: gb]
     """
 
     args = docopt(doc, argv=None, help=True, version=None, options_first=False)
@@ -47,12 +49,13 @@ def main():
     gb_file_no_ext=path.splitext(f)[0]#ath.basename(f).split(".")[0]
     #print(i)
 
-    nodes=[]
-    edges=[]
+    #nodes=[]
+    #edges=[]
     node_filename=gb_file_no_ext+'_node.csv'
     pc_edge_filename=gb_file_no_ext+'_pc_edge.csv'
     xref_edge_filename=gb_file_no_ext+'_xref_edge.csv'
     func_edge_filename=gb_file_no_ext+'_func_edge.csv'
+    annot_edge_filename=gb_file_no_ext+'_annot_edge.csv'   
     with open(node_filename, "w") as node_file, \
          open(pc_edge_filename, "w") as pc_edge_file, \
          open(xref_edge_filename, "w") as xref_edge_file, \
@@ -65,32 +68,32 @@ def main():
                 (db,seq_type)=ca.classify_acc(r.id)
                 if seq_type == "unknown":
                     a=1
-                nodes,xref_strs, parent_child_edges,key,func_edges=rec_parser.parseRecord(r, db, seq_type) 
+                #nodes,xref_strs, parent_child_edges,key,func_edges=rec_parser.parseRecord(r, db, seq_type) 
+                g=rec_parser.parseRecord(r, db, seq_type) 
 
-
-                node_ids=[n['id'] for n in nodes if n['id'][0:3]!='WP_']
+                node_ids=[n['id'] for n in g['nodes'] if n['id'][0:3]!='WP_']
                 if len(set(node_ids))!=len(list(node_ids)):
                     raise RuntimeError("Duplicate identifiers for multiple entities")
 
-                if xref_strs:
+                if g['xref_strs']:
                     if(j==0):
                         print("Writing edges to {}".format(xref_edge_filename))
                         xref_edge_file.write("\t".join(['trg', 'trg_ver', 'src', 'src_ver', 'trg_type', 'src_type','edge_type'])+"\n")#"trg\tsrc\t\n")
-                    xref_edge_file.write("\n".join(["\t".join(e) for e in xref_strs])+"\n")
+                    xref_edge_file.write("\n".join(["\t".join(e) for e in g['xref_strs']])+"\n")
 
-                if func_edges:
+                if g['func_edges']:
                     if(j==0):
                         print("Writing edges to {}".format(func_edge_filename))
                         func_edge_file.write("\t".join(['id', 'annot', 'eco', 'source'])+"\n")#"trg\tsrc\t\n")
-                    func_edge_file.write("\n".join(["\t".join(e.values()) for e in func_edges])+"\n")
+                    func_edge_file.write("\n".join(["\t".join(e.values()) for e in g['func_edges']])+"\n")
 
-                if parent_child_edges:
+                if g['parent_child_edges']:
                     if(j==0):
                         print("Writing edges to {}".format(pc_edge_filename))
                         pc_edge_file.write("\t".join(['trg', 'trg_ver', 'src', 'src_ver', 'trg_type', 'src_type','edge_type'])+"\n")#"trg\tsrc\t\n")
-                    pc_edge_file.write("\n".join(["\t".join(e) for e in parent_child_edges])+"\n")
+                    pc_edge_file.write("\n".join(["\t".join(e) for e in g['parent_child_edges']])+"\n")
 
-                if nodes:
+                if g['nodes']:
                     if(j==0):
                         print("Writing nodes to {}".format(node_filename))
                         node_file.write("\t".join(key)+"\n")
