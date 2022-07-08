@@ -9,7 +9,6 @@ import re
 from typing import List, Tuple
 from Bio import SeqRecord
 from datetime import datetime
-from collections import defaultdict
 import copy
 
 try:
@@ -17,6 +16,15 @@ try:
 except:
     from classify_acc import classify_acc
 
+try:
+    from netdbqual.inf_parse import extractInferenceEdges,extractInferenceEdgesP
+except:
+    from inf_parse import extractInferenceEdges,extractInferenceEdgesP
+
+try:
+    from netdbqual.parser_utils import identifyProteins 
+except:
+    from parser_utils import identifyProteins
 
 #from classify_acc import classify_acc
 
@@ -322,13 +330,6 @@ def isPseudo(r: SeqRecord, rec_type: str, seq_type: str) -> bool:
     return False
 
 
-def identifyProteins(r):
-    feats=r.features[1:]
-    fd=defaultdict(dict)
-    for f in feats:
-        key=(f.location.start, f.location.end)
-        fd[key][f.type]=f
-    return {k:v for k,v in fd.items() if 'CDS' in v or 'Protein' in v}
 
 
 
@@ -436,7 +437,7 @@ def extractChildren(r, parent, seq_type, db):
     nodes=[]
     edges=[]
     ec_edges=[]
-
+    inf_edges=[]
     if seq_type=="nucleotide" or seq_type == "contig":
         #product_field={'nucleotide':'CDS', 'protein':'Protein'}
         for p in ps.values():
@@ -455,6 +456,7 @@ def extractChildren(r, parent, seq_type, db):
 
             child['go']=extractGO(r, p, db)
             child['ec'],ec_edges_curr=extractEC(r, p['CDS'])
+            child['inf']=extractInferenceEdgesP(p, db, child['id'], str(child['seq_version']))
             child['n_products']=0
             if 'translation' in p['CDS'].qualifiers:
                 child['seq']=str(p['CDS'].qualifiers['translation'][0])
@@ -470,9 +472,10 @@ def extractChildren(r, parent, seq_type, db):
             edges.append((child['id'], str(child['seq_version']), parent['id'], 
                     str(parent['seq_version']), 'p', seq_type[0],  'cp'))
             ec_edges=ec_edges+ec_edges_curr
+            inf_edges=inf_edges+child['inf']
     elif len(ps)>1:
         raise
-    return {"n":nodes, "e":edges, 'ec':ec_edges}
+    return {"n":nodes, "e":edges, 'ec':ec_edges, 'inf':inf_edges}
 
 
 def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
@@ -506,12 +509,16 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
         if len(p)==1:
             e['go']=extractGO(r, p[0], db)
             e['ec'],ec_edges=extractEC(r, p[0]['Protein'])
+            e['inf'] = extractInferenceEdgesP(p, db, e['id'], str(e['seq_version']))
+
         elif len(p)==0:
             e['go']=extractGO(r, "", db)
             e['ec'],ec_edges=extractEC(r,  "")
+            e['inf'] = []
     else:
         e['go']=""
         e['ec']=""
+        e['inf'] = []
     e['seq_type']=seq_type[0]
     e['db']=db[0]
     try:
@@ -520,7 +527,7 @@ def createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource=""):
         e['seq']=""
     edges=extractParentEdges(r,db,uniprot_dbsource)
     edges=[(e['id'],str(e['seq_version']), edge[0], edge[1],seq_type[0], classify_acc(edge[0])[0][0],  'xref') for edge in edges]
-    return {'n':e, 'e':edges, 'ec':ec_edges}
+    return {'n':e, 'e':edges, 'ec':ec_edges, 'inf':e['inf']}
 
 
 
@@ -529,53 +536,6 @@ def processUniProtDBsource(dbsource_str):
     preprocess_str=preprocess_str.replace(' created', '. created').replace('extra accessions:', 'extra accessions: ').split(". ")
     return dict([x.split(": ") for x in preprocess_str if x])
 
-
-def parseInference(inf, note):
-    if inf[0:20]=="COORDINATES: similar":
-        match=inf.split("sequence:")
-        if len(match)!=2:
-            raise RuntimeError("Unexpected pattern")
-        db, acc_ver = match[1].split(":")
-        acc, seq_version=acc_ver.split(".")
-        return({'acc':acc,
-                'seq_version':int(seq_version),
-                'identity': "",
-                'db':'r', 
-                'type':'h'})
-    elif inf[0:20]=="COORDINATES: ab init":
-        match=inf.split("prediction:")
-        if len(match)!=2:
-            raise RuntimeError("Unexpected pattern")
-        model = match[1].split(":")[1]
-        
-        return({'acc':"",
-                'seq_version':"",
-                'identity': "",
-                'db':'r', 
-                'type':'h'})
-    else:
-        raise RuntimeError("Not implemented")
-    return 
-
-def extractInferenceEdges(r, db):
-    if db=="uniprot":
-       raise 
-    else:
-        ps=list(identifyProteins(r).values())
-        for p in ps: 
-            relevant_feats=set(p.keys()).intersection(set(['CDS', 'Protein']))
-            # For a genbank record
-            inferences=[]
-            for f in relevant_feats:
-                if 'inference' in p[f].qualifiers:
-                    note=""
-                    if 'inference' in p[f].qualifiers:
-                        note = p[f].qualifiers['note'][0] if 'note' in p[f].qualifiers else ""
-                        inf=p[f].qualifiers['inference']
-                        if(len(inf)>1):
-                            raise RuntimeError("Inference is returning some list")
-                        inferences.append(parseInference(inf[0], note)) 
-            
 
 
 def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
@@ -592,12 +552,14 @@ def parseRecord(r, db: str, seq_type: str) -> Tuple(List[str], List[str]):
    
     parent=createTopLevelNode(r, rec_type, seq_type, db,uniprot_dbsource)
     children=extractChildren(r, parent['n'], seq_type, db)
-    #edge = extractEdges(r, rec_type, nodes)
+    
+
     g = {}
-    g['node_strs']=[parent['n']]+children['n']
+    g['nodes']=[parent['n']]+children['n']
     g['xref_strs']=parent['e']
     g['parent_child_edges']=children['e']
-    g['ec_edges']=parent['ec']+children['ec']
+    g['func_edges']=parent['ec']+children['ec']
+    g['annot_edges']=parent['inf']+children['inf']
     g['key']=list(parent['n'].keys())
     return(g)
     #return node_strs, xref_strs, parent_child_edges, list(parent['n'].keys()), ec_edges

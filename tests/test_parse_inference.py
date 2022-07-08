@@ -1,5 +1,6 @@
 import unittest   # The test framework
 from netdbqual import rec_parser
+from netdbqual.inf_parse import parseInference
 from importlib import reload  # Python 3.4+
 
 class Test_ParseInference(unittest.TestCase):
@@ -8,7 +9,7 @@ class Test_ParseInference(unittest.TestCase):
         inf="non-experimental evidence, no additional details recorded"
         note="similar to GB:AAL97515.1 (AE010016) percent identity 98 in 407 aa"
 
-        obs=rec_parser.parseInference(inf, note)
+        obs=parseInference(inf, note)
         exp={'acc':'AAL97515',
             'seq_version':1,
             'identity': .98,
@@ -22,7 +23,7 @@ class Test_ParseInference(unittest.TestCase):
         inf="non-experimental evidence, no additional details recorded"
         note="catalyzes the release of the N-terminal amino acid from a tripeptide"
 
-        obs=rec_parser.parseInference(inf, note)
+        obs=parseInference(inf, note)
         exp={}
         self.assertEqual(obs, exp)
 
@@ -33,7 +34,7 @@ class Test_ParseInference(unittest.TestCase):
                      (100% evalue=0); E. coli Z1832 pepT; putative peptidase T
                      (77.1% evalue=0)"""
 
-        obs=rec_parser.parseInference(inf, note)
+        obs=parseInference(inf, note)
         exp=exp={'acc':'YPO1631',
             'seq_version':"",
             'identity': 1,
@@ -56,7 +57,7 @@ class Test_ParseInference(unittest.TestCase):
                      COG: COG2195 Di- and tripeptidases;
                      Psort location: Cytoplasmic, score:9.97"""
 
-        obs=rec_parser.parseInference(inf, note)
+        obs=parseInference(inf, note)
         exp=exp={'acc':'YPO1631',
             'seq_version':"",
             'identity': 1,
@@ -66,14 +67,14 @@ class Test_ParseInference(unittest.TestCase):
         self.assertEqual(obs, exp)
 
 
-    def test_ab_initio(self):
+    def test_ab_initio_short(self):
             inf="ab initio prediction:AMIGene:2.0"
-            obs=rec_parser.parseInference(inf)
+            obs=parseInference(inf)
             exp=exp={'acc':'',
                 'seq_version':"",
                 'identity': "",
                 'db':'', 
-                'type':'d',
+                'type':'AbInit',
                 'model':"AMIGene:2.0"}
             self.assertEqual(obs, exp)        
 
@@ -85,26 +86,27 @@ class Test_ParseInference(unittest.TestCase):
                         TIGRFAM: peptidase T;
                         PFAM: peptidase dimerisation domain protein; peptidase
                         M20"""
-        obs=rec_parser.parseInference(inf)
-        exp=exp={'acc':':TIGR01882',
+        obs=parseInference(inf)
+        exp=exp={'acc':'TIGR01882',
                 'seq_version':"",
                 'identity': "",
-                'model':"tfam",
-                'db':'tfam', 
-                'type':'hmm'}
+                'model':"",
+                'db':'TFAM', 
+                'type':'Motif'}
         self.assertEqual(obs, exp)
+
 
     def test_refseq_homology(self):
         inf="""COORDINATES: similar to AA
                         sequence:RefSeq:WP_014656343.2"""
         note="""Derived by automated computational analysis using
                 gene prediction method: Protein Homology."""
-        obs=rec_parser.parseInference(inf, note)
+        obs=parseInference(inf, note)
         exp={'acc':'WP_014656343',
                 'seq_version':2,
                 'identity': "",
-                'db':'r', 
-                'type':'h',
+                'db':'RefSeq', 
+                'type':'Hom',
                 'model':""}
         self.assertEqual(obs, exp)
 
@@ -112,12 +114,12 @@ class Test_ParseInference(unittest.TestCase):
         inf="""COORDINATES: ab initio prediction:GeneMarkS+"""
         note="""Derived by automated computational analysis using
                      gene prediction method: GeneMarkS+."""
-        obs=rec_parser.parseInference(inf, note)
+        obs=parseInference(inf, note)
         exp={'acc':'',
                 'seq_version':"",
                 'identity': "",
-                'db':'r', 
-                'type':'h',
+                'db':'', 
+                'type':'AbInit',
                 "model":"GeneMarkS+"}
         self.assertEqual(obs, exp)
 

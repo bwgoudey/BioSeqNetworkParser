@@ -18,7 +18,7 @@ def main():
     Usage: generate_network.py  [-i INPUT] [-f FORMAT]
 
     Options:
-        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/gbbct245.seq.gz]
+        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/bacteria.187.genomic.gbff.gz]
         -f FORMAT   --format FORMAT    [default: gb]
     """
 
@@ -59,6 +59,7 @@ def main():
     with open(node_filename, "w") as node_file, \
          open(pc_edge_filename, "w") as pc_edge_file, \
          open(xref_edge_filename, "w") as xref_edge_file, \
+         open(annot_edge_filename, "w") as annot_edge_file, \
          open(func_edge_filename, "w") as func_edge_file:     
             for j,r in enumerate(gbs_iter):
                 # look at all CDS 
@@ -90,18 +91,23 @@ def main():
                 if g['parent_child_edges']:
                     if(j==0):
                         print("Writing edges to {}".format(pc_edge_filename))
-                        pc_edge_file.write("\t".join(['trg', 'trg_ver', 'src', 'src_ver', 'trg_type', 'src_type','edge_type'])+"\n")#"trg\tsrc\t\n")
+                        cols=['trg', 'trg_ver', 'src', 'src_ver', 'trg_type', 'src_type','edge_type']
+                        pc_edge_file.write("\t".join(cols)+"\n")#"trg\tsrc\t\n")
                     pc_edge_file.write("\n".join(["\t".join(e) for e in g['parent_child_edges']])+"\n")
 
                 if g['nodes']:
                     if(j==0):
                         print("Writing nodes to {}".format(node_filename))
-                        node_file.write("\t".join(key)+"\n")
-                    node_file.write("\n".join(["\t".join([str(x) for x in n.values()]) for n in nodes])+"\n")
-                #1
-                #if j > 10000:
-                #    break
+                        node_file.write("\t".join(g['key'])+"\n")
+                    node_file.write("\n".join(["\t".join([str(x) for x in n.values()]) for n in g['nodes']])+"\n")
 
+                if g['annot_edges']:
+                    cols=['trg_id','trg_seq_ver', 'acc', 'seq_version', 'identity', 'db', 'type', 'model']
+                    col_names=['trg_id','trg_seq_ver', 'src_acc', 'src_seq_ver', 'identity', 'db', 'type', 'model']
+                    if(j==0):
+                        print("Writing edges to {}".format(annot_edge_filename))
+                        annot_edge_file.write("\t".join(col_names)+"\n")#"trg\tsrc\t\n")
+                    annot_edge_file.write("\n".join(["\t".join([str(e[k]) for k in cols]) for e in g['annot_edges']])+"\n")
    
 if __name__ == "__main__":
     main()           
