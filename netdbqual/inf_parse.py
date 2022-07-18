@@ -1,5 +1,10 @@
 
 import re
+try:
+    from netdbqual.classify_acc import classify_acc 
+except:
+    from classify_acc import classify_acc
+
 
 
 
@@ -27,7 +32,7 @@ def parseInference(inf, note=""):
             db, acc_ver = match[1].split(":")
         else:
             acc_ver=match[1]
-            db=""
+            db=classify_acc(acc_ver)
 
         if "." in acc_ver:
             acc, seq_version=acc_ver.split(".")
