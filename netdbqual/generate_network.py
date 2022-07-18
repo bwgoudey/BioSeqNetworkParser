@@ -18,7 +18,7 @@ def main():
     Usage: generate_network.py  [-i INPUT] [-f FORMAT]
 
     Options:
-        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/gbbct21.seq.gz]
+        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/gbbct4.seq.gz]
         -f FORMAT   --format FORMAT    [default: gb]
     """
 
@@ -72,7 +72,7 @@ def main():
                 #nodes,xref_strs, parent_child_edges,key,func_edges=rec_parser.parseRecord(r, db, seq_type) 
                 g=rec_parser.parseRecord(r, db, seq_type) 
 
-                node_ids=[n['id'] for n in g['nodes'] if n['id'][0:3]!='WP_']
+                node_ids=[n['id'] for n in g['nodes'] if n['id'][0:3]!='WP_' and n['id']]                
                 if len(set(node_ids))!=len(list(node_ids)):
                     raise RuntimeError("Duplicate identifiers for multiple entities")
 
@@ -101,6 +101,7 @@ def main():
                         node_file.write("\t".join(g['key'])+"\n")
                     node_file.write("\n".join(["\t".join([str(x) for x in n.values()]) for n in g['nodes']])+"\n")
 
+                #HACK
                 g['annot_edges']=list(filter(lambda x: x is not None, g['annot_edges']))
                 if g['annot_edges']:
                     cols=['trg_id','trg_seq_ver', 'acc', 'seq_version', 'identity', 'db', 'type', 'model']
