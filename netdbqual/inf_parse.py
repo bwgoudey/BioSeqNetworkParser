@@ -16,14 +16,19 @@ def parseInference(inf, note=""):
     if inf[0:20]=="COORDINATES: similar" or inf[0:22]=="similar to AA sequence":
         match=inf.split("sequence:")
         if len(match)!=2:
-            raise RuntimeError("Unexpected pattern")
+            return
+            #raise RuntimeError("Unexpected pattern")
 
         if "," in match[1]:
             #TODO: we just trim this for now. 
             match[1] = match[1].split(",")[0]
         
+        if ":" in match[1]:
+            db, acc_ver = match[1].split(":")
+        else:
+            acc_ver=match[1]
+            db=""
 
-        db, acc_ver = match[1].split(":")
         if "." in acc_ver:
             acc, seq_version=acc_ver.split(".")
             seq_version=int(seq_version)
@@ -82,10 +87,10 @@ def parseInference(inf, note=""):
                 'type':'Motif', 
                 'model':""})
 
-    elif inf==no_inf and not note:
+    elif inf==no_inf and (not note or len(note)<6):
         return        
     else:
-        raise RuntimeError("Not implemented")
+        return#raise RuntimeError("Not implemented")
     return 
 
 
@@ -107,6 +112,8 @@ def extractInferenceEdgesP(p, db, p_id, p_seq_ver):
             for i in inf:
                 inferences.append(parseInference(i, note)) 
     for i in inferences:
+        if i is None:
+            continue
         i['trg_id']=p_id
         i['trg_seq_ver']=p_seq_ver
         

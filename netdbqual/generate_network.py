@@ -18,7 +18,7 @@ def main():
     Usage: generate_network.py  [-i INPUT] [-f FORMAT]
 
     Options:
-        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/bacteria.187.genomic.gbff.gz]
+        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/gbbct21.seq.gz]
         -f FORMAT   --format FORMAT    [default: gb]
     """
 
@@ -101,13 +101,14 @@ def main():
                         node_file.write("\t".join(g['key'])+"\n")
                     node_file.write("\n".join(["\t".join([str(x) for x in n.values()]) for n in g['nodes']])+"\n")
 
+                g['annot_edges']=list(filter(lambda x: x is not None, g['annot_edges']))
                 if g['annot_edges']:
                     cols=['trg_id','trg_seq_ver', 'acc', 'seq_version', 'identity', 'db', 'type', 'model']
                     col_names=['trg_id','trg_seq_ver', 'src_acc', 'src_seq_ver', 'identity', 'db', 'type', 'model']
                     if(j==0):
                         print("Writing edges to {}".format(annot_edge_filename))
                         annot_edge_file.write("\t".join(col_names)+"\n")#"trg\tsrc\t\n")
-                    annot_edge_file.write("\n".join(["\t".join([str(e[k]) for k in cols]) for e in g['annot_edges']])+"\n")
+                    annot_edge_file.write("\n".join(["\t".join([str(e[k]) for k in cols]) for e in g['annot_edges'] if e is not None])+"\n")
    
 if __name__ == "__main__":
     main()           
