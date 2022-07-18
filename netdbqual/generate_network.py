@@ -18,7 +18,7 @@ def main():
     Usage: generate_network.py  [-i INPUT] [-f FORMAT]
 
     Options:
-        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/gbbct21.seq.gz]
+        -i INPUT   --input INPUT     input file [default: /Users/bgoudey/Research/BioDbNetQual/BioDbPropagationEval/data/gbbct57.seq.gz]
         -f FORMAT   --format FORMAT    [default: gb]
     """
 

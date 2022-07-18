@@ -29,14 +29,14 @@ def parseInference(inf, note=""):
             match[1] = match[1].split(",")[0]
         
         if ":" in match[1]:
-            db, acc_ver = match[1].split(":")
+            db, acc_ver = match[1].split(":")[-2:]
         else:
             acc_ver=match[1]
             db=classify_acc(acc_ver)
 
         if "." in acc_ver:
-            acc, seq_version=acc_ver.split(".")
-            seq_version=int(seq_version)
+            acc, seq_version=acc_ver.split(".")[0:2]
+            seq_version=(seq_version)
         else:
             acc=acc_ver
             seq_version=""
