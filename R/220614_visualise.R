@@ -56,14 +56,7 @@ write.table(file='./notebook/exps/poor_ec_sim.acc', poor_lab_dat %>% select(q_ac
 #all_vs_sp %>% group_by(target) %>% summarise(m=max(bit_score)) %>% ggplot(aes(x=m)) + geom_histogram() + theme_bw() + scale_x_log10(limits = c(10,50))+ scale_y_log10() 
 
 #all_vs_sp %>% group_by(target) %>% summarise(m=max(-log10(e_value))) %>%   ggplot(aes(x=m)) + geom_histogram() + theme_bw() + scale_x_log10()+ scale_y_log10()
-#SP prots ------
-sp_vs_sp<-read.table('~/Research2/BioDbNetQual/220411_ExamineFunction/data/EC3_4_11_4/diamond/SP_vs_SP.tsv', col.names = cols, row.names = NULL)
 
-sp_vs_sp %>% group_by(query) %>% 
-  filter(query!=target) %>%
-  summarise(m=max(seq_id)) %>% 
-  ggplot(aes(x=m)) + geom_density() + geom_histogram()+ xlim(0,100)
-sp_vs_sp %>% group_by(query) %>% summarise(m=max(seq_id)) %>% filter(m<30)  %>% dim()
 # Reannot ----------
 new_lab_dat<-data.table::fread('./data/poor_ec_sim.fasta2_res', col.names = cols) %>%
   group_by(query) %>%
@@ -82,26 +75,31 @@ new_lab_dat<-data.table::fread('./data/poor_ec_sim.fasta2_res', col.names = cols
 #           seq_id.new-seq_id.old > 0) %>% 
 #  select(q_acc, t_acc.old, t_acc.new, t_ec.old,t_ec.new,  bit_score.new, bit_score.old, seq_id.new, seq_id.old) %>% 
 #  arrange(bit_score.new-bit_score.old )
-I=new_lab_dat$bit_score.new-new_lab_dat$bit_score.old <= 10 
-xx=new_lab_dat
+xx=new_lab_dat  %>% 
+  filter( (bit_score.new-bit_score.old >  0 &t_ec.old!=t_ec.new) | (bit_score.new-bit_score.old <= 10 &  t_ec.old==t_ec.new))
+I=xx$bit_score.new-xx$bit_score.old <= 10 
 xx$t_ec.new[I]=xx$t_ec.old[I]
 xx$t_acc.new[I]=xx$t_acc.old[I]
 xx$seq_id.new[I]=xx$seq_id.old[I]
 xx$bit_score.new[I]=xx$bit_score.old[I]
 xx$e_value.new[I]=xx$e_value.old[I]
+# How could the EC term be the same but the identity is now great than 35\%?
+# Previously, these were chosen because their sequence identity to EC terms of the same class was less than 35%
+# Now we see its much higher?
 
 
 
-p2<-#inner_join(poor_lab_dat,new_lab_dat, by=c('t_acc', 't_ec', 't_type'), suffix=c(".old", ".new")) %>% 
-  xx %>% ungroup() %>% 
-  ggplot(aes(x=seq_id.old, y=seq_id.new)) +
-  #ggplot(aes(x=bit_score.old, y=bit_score.new-bit_score.old)) +
-  #ggplot(aes(x=-log10(e_value.old), y=-log10(e_value.new))) +
-  geom_point(alpha=0.5) + 
-  theme_bw(base_size=14) +
-  labs(x="identity to old label", y="improvement in identity")+ 
-  coord_cartesian(xlim=c(10,50),ylim=c(0,100))
-p2
+# 
+# p2<-#inner_join(poor_lab_dat,new_lab_dat, by=c('t_acc', 't_ec', 't_type'), suffix=c(".old", ".new")) %>% 
+#   xx %>% ungroup() %>% 
+#   ggplot(aes(x=seq_id.old, y=seq_id.new)) +
+#   #ggplot(aes(x=bit_score.old, y=bit_score.new-bit_score.old)) +
+#   #ggplot(aes(x=-log10(e_value.old), y=-log10(e_value.new))) +
+#   geom_point(alpha=0.5) + 
+#   theme_bw(base_size=14) +
+#   labs(x="identity to old label", y="improvement in identity")+ 
+#   coord_cartesian(xlim=c(10,50),ylim=c(0,100))
+# p2
 
 x=xx %>% ungroup() %>% 
   mutate(orig_seq_id=cut(seq_id.old, breaks=c(0,27,31, 35)),
@@ -118,8 +116,8 @@ p2<-#inner_join(poor_lab_dat,new_lab_dat, by=c('t_acc', 't_ec', 't_type'), suffi
   geom_histogram(position='dodge') + 
   #geom_density(alpha=0.5) + 
   theme_bw(base_size=14) +
-  labs(x="identity to new label", y="count") +# 
- scale_y_log10(limits=c(1,1e6))
+  labs(x="identity to new label", y="count") #+# 
+# scale_y_log10(limits=c(1,1e6))
   #coord_cartesian(xlim=c(10,50),ylim=c(0,100))
 p2
 
@@ -152,15 +150,11 @@ dead_acc=rbind(edges_dead_found, edges_dead)
 
 # Create a list of edges with inference and indicate their status
 # Create a list of edges and their 
-
-
-
 xx <- nodes_all %>% 
-  mutate(inference="none") %>%
   left_join(edges_all %>% select(trg, src), by=c("id"="trg")) %>% 
-  mutate(inference=ifelse(id %in% edges_all$trg, "alive", inference)) %>%
-  mutate(status=ifelse(id %in% dead_acc$acc, "dead", inference)) %>%
-  mutate(status=ifelse(id %in% edges_reannot$acc, "reannot", inference))
+  mutate(inference=ifelse(!is.na(src), "alive", "none")) %>%
+  mutate(inference=ifelse(src %in% dead_acc$acc, "dead", inference)) %>%
+  mutate(inference=ifelse(src %in% edges_reannot$acc, "reannot", inference))
 
 
 
